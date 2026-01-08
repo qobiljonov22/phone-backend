@@ -1,0 +1,21 @@
+{
+  "name": "phone-backend",
+  "version": "1.0.0",
+  "description": "Professional Phone E-commerce Backend API with WebSocket",
+  "main": "server/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": ["phone", "backend", "api", "ecommerce", "websocket"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "ws": "^8.18.0"
+  }
+}
