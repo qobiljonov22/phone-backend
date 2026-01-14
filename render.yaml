@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: phone-store-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BASE_URL
+        value: https://phone-store-backend.onrender.com
+      - key: WEBSOCKET_URL
+        value: wss://phone-store-backend.onrender.com
+    healthCheckPath: /api/health

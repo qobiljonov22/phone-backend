@@ -1,0 +1,49 @@
+{
+  "id": "phone-store-env",
+  "name": "Phone Store - Production",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "https://apple-telemetrica-backend.iuaqqt.easypanel.host",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "base_url",
+      "value": "https://apple-telemetrica-backend.iuaqqt.easypanel.host",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "lastPhoneId",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "lastImageId",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "lastImagePath",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "lastImageFilename",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "imageId",
+      "value": "1736622791234",
+      "type": "any",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

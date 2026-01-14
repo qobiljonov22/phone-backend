@@ -1,0 +1,405 @@
+{
+  "info": {
+    "name": "Phone Store - Image Management",
+    "description": "Complete image upload and management API for Phone Store",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "📷 Image Upload",
+      "item": [
+        {
+          "name": "Upload Single Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save response data for next requests",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.image) {",
+                  "        pm.environment.set('lastImageId', responseJson.image.id);",
+                  "        pm.environment.set('lastImageFilename', responseJson.image.filename);",
+                  "        pm.environment.set('lastImagePath', responseJson.image.path);",
+                  "        pm.environment.set('lastPhoneId', responseJson.phone.id);",
+                  "        ",
+                  "        console.log('✅ Image uploaded successfully!');",
+                  "        console.log('📱 Phone ID:', responseJson.phone.id);",
+                  "        console.log('🆔 Image ID:', responseJson.image.id);",
+                  "        console.log('📁 Filename:', responseJson.image.filename);",
+                  "        console.log('🔗 Path:', responseJson.image.path);",
+                  "        console.log('');",
+                  "        console.log('🎯 Next steps:');",
+                  "        console.log('1️⃣ Use: GET /api/images/phone/' + responseJson.phone.id);",
+                  "        console.log('2️⃣ View image: GET ' + responseJson.image.path);",
+                  "        console.log('3️⃣ Or use the automated requests below!');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "alt",
+                  "value": "iPhone 15 Pro main image",
+                  "type": "text"
+                },
+                {
+                  "key": "isPrimary",
+                  "value": "true",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/images/upload/iphone-15-pro",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "upload", "iphone-15-pro"]
+            },
+            "description": "Upload a single image for a phone. The image will be stored and associated with the phone."
+          }
+        },
+        {
+          "name": "Upload Multiple Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/images/upload-multiple/galaxy-s24-ultra",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "upload-multiple", "galaxy-s24-ultra"]
+            },
+            "description": "Upload multiple images for a phone at once. Maximum 5 images per request."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📱 Get Images",
+      "item": [
+        {
+          "name": "Get Phone Images",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/phone/iphone-15-pro",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "phone", "iphone-15-pro"]
+            },
+            "description": "Get all uploaded images for a specific phone"
+          }
+        },
+        {
+          "name": "Get Phone Images (Auto - After Upload)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/phone/{{lastPhoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "phone", "{{lastPhoneId}}"]
+            },
+            "description": "Get all uploaded images for the last uploaded phone (uses environment variable from upload)"
+          }
+        },
+        {
+          "name": "Get All Images",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/all?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "all"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get all uploaded images with pagination"
+          }
+        },
+        {
+          "name": "Get Image Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "stats"]
+            },
+            "description": "Get statistics about uploaded images"
+          }
+        },
+        {
+          "name": "View Uploaded Image",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/uploads/phones/iphone-15-pro-1736622791234.jpg",
+              "host": ["{{baseUrl}}"],
+              "path": ["uploads", "phones", "iphone-15-pro-1736622791234.jpg"]
+            },
+            "description": "View the actual uploaded image file. Replace filename with actual uploaded filename."
+          }
+        },
+        {
+          "name": "View Last Uploaded Image (Auto)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{lastImagePath}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["{{lastImagePath}}"]
+            },
+            "description": "View the last uploaded image directly (uses environment variable from upload)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 Image Management",
+      "item": [
+        {
+          "name": "Update Image Metadata",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alt\": \"Updated image description\",\n  \"isPrimary\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/images/iphone-15-pro/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "iphone-15-pro", "{{imageId}}"]
+            },
+            "description": "Update image metadata like alt text and primary status"
+          }
+        },
+        {
+          "name": "Update Last Image (Auto)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alt\": \"Updated image description\",\n  \"isPrimary\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/images/{{lastPhoneId}}/{{lastImageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "{{lastPhoneId}}", "{{lastImageId}}"]
+            },
+            "description": "Update the last uploaded image metadata (uses environment variables)"
+          }
+        },
+        {
+          "name": "Delete Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/iphone-15-pro/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "iphone-15-pro", "{{imageId}}"]
+            },
+            "description": "Delete an uploaded image"
+          }
+        },
+        {
+          "name": "Delete Last Image (Auto)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/{{lastPhoneId}}/{{lastImageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "{{lastPhoneId}}", "{{lastImageId}}"]
+            },
+            "description": "Delete the last uploaded image (uses environment variables)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Test Examples",
+      "item": [
+        {
+          "name": "Complete Upload Test - iPhone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save response data for next requests",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.image) {",
+                  "        pm.environment.set('lastImageId', responseJson.image.id);",
+                  "        pm.environment.set('lastImageFilename', responseJson.image.filename);",
+                  "        pm.environment.set('lastImagePath', responseJson.image.path);",
+                  "        pm.environment.set('lastPhoneId', responseJson.phone.id);",
+                  "        console.log('✅ iPhone image uploaded successfully!');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "alt",
+                  "value": "Test iPhone image",
+                  "type": "text"
+                },
+                {
+                  "key": "isPrimary",
+                  "value": "true",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/images/upload/iphone-15-pro",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "upload", "iphone-15-pro"]
+            },
+            "description": "Complete test for uploading an image to iPhone 15 Pro"
+          }
+        },
+        {
+          "name": "Complete Upload Test - Samsung",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Save response data for next requests",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.image) {",
+                  "        pm.environment.set('lastImageId', responseJson.image.id);",
+                  "        pm.environment.set('lastImageFilename', responseJson.image.filename);",
+                  "        pm.environment.set('lastImagePath', responseJson.image.path);",
+                  "        pm.environment.set('lastPhoneId', responseJson.phone.id);",
+                  "        console.log('✅ Samsung image uploaded successfully!');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "alt",
+                  "value": "Test Samsung image",
+                  "type": "text"
+                },
+                {
+                  "key": "isPrimary",
+                  "value": "true",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/images/upload/galaxy-s24-ultra",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "upload", "galaxy-s24-ultra"]
+            },
+            "description": "Complete test for uploading an image to Galaxy S24 Ultra"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://phone-backend-production.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "imageId",
+      "value": "1736622791234",
+      "type": "string",
+      "description": "Replace with actual image ID from upload response"
+    }
+  ]
+}

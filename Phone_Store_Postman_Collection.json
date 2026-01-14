@@ -1,0 +1,457 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Phone Store API",
+		"description": "Phone Store Backend API Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"health"
+					]
+				}
+			}
+		},
+		{
+			"name": "Get Phone by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/phones/iphone-15-pro",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"phones",
+						"iphone-15-pro"
+					]
+				}
+			}
+		},
+		{
+			"name": "Search Phones",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/search?q=iphone&minPrice=500&maxPrice=1500",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"search"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "iphone"
+						},
+						{
+							"key": "minPrice",
+							"value": "500"
+						},
+						{
+							"key": "maxPrice",
+							"value": "1500"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "Get Featured Phones",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/featured",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"featured"
+					]
+				}
+			}
+		},
+		{
+			"name": "Get Categories",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/categories",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"categories"
+					]
+				}
+			}
+		},
+		{
+			"name": "Get Brands",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/brands",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"brands"
+					]
+				}
+			}
+		},
+		{
+			"name": "Create Phone",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"brand\": \"Apple\",\n  \"model\": \"iPhone 15 Pro\",\n  \"price\": 999,\n  \"storage\": \"128GB\",\n  \"color\": \"Natural Titanium\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/phones",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"phones"
+					]
+				}
+			}
+		},
+		{
+			"name": "Update Phone",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"price\": 899,\n  \"inStock\": true,\n  \"discount\": 10\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/phones/iphone-15-pro",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"phones",
+						"iphone-15-pro"
+					]
+				}
+			}
+		},
+		{
+			"name": "Delete Phone",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"reason\": \"Product discontinued\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/phones/iphone-15-pro",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"phones",
+						"iphone-15-pro"
+					]
+				}
+			}
+		},
+		{
+			"name": "Compare Phones",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phoneIds\": [\"iphone-15-pro\", \"galaxy-s24-ultra\"]\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/compare",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"compare"
+					]
+				}
+			}
+		},
+		{
+			"name": "Send Notification",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"type\": \"info\",\n  \"title\": \"New Phone Alert\",\n  \"message\": \"iPhone 15 Pro is now available!\",\n  \"userId\": \"user123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/notifications",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"notifications"
+					]
+				}
+			}
+		},
+		{
+			"name": "Price Update",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"newPrice\": 899,\n  \"oldPrice\": 999\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/price-update",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"price-update"
+					]
+				}
+			}
+		},
+		{
+			"name": "Stock Update",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"inStock\": true,\n  \"quantity\": 50\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/stock-update",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"stock-update"
+					]
+				}
+			}
+		},
+		{
+			"name": "Broadcast Message",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"message\": \"Server maintenance tonight at 2 AM\",\n  \"type\": \"announcement\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/broadcast",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"broadcast"
+					]
+				}
+			}
+		},
+		{
+			"name": "Get Payment Methods",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/payments/methods",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"payments",
+						"methods"
+					]
+				}
+			}
+		},
+		{
+			"name": "Process Payment",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"orderId\": \"ORD123\",\n  \"amount\": 999,\n  \"currency\": \"USD\",\n  \"paymentMethod\": \"card\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/payments/process",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"payments",
+						"process"
+					]
+				}
+			}
+		},
+		{
+			"name": "Create Order Tracking",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"orderId\": \"ORD123\",\n  \"phoneId\": \"iphone-15-pro\",\n  \"userId\": \"user123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/tracking/create",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"tracking",
+						"create"
+					]
+				}
+			}
+		},
+		{
+			"name": "Get Order Tracking",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/tracking/ORD123",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"tracking",
+						"ORD123"
+					]
+				}
+			}
+		},
+		{
+			"name": "Admin Dashboard",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer admin-token-2024"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/admin/dashboard",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"admin",
+						"dashboard"
+					]
+				}
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://phone-backend-production.up.railway.app",
+			"type": "string"
+		}
+	]
+}
