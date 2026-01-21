@@ -1,5 +1,5 @@
 // Phone comparison functionality
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // In-memory comparison storage
@@ -414,4 +414,4 @@ function getTopFeatures(phones) {
     .map(([feature, count]) => ({ feature, count }));
 }
 
-module.exports = router;
+export default router;

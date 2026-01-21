@@ -1,5 +1,5 @@
 // Shopping Cart functionality
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // In-memory cart storage (in production, use database)
@@ -139,4 +139,4 @@ router.delete('/:userId', (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;

@@ -315,6 +315,46 @@
                         <span><span class="method get">GET</span> /api/images/stats/summary</span>
                         <button onclick="testEndpoint('/api/images/stats/summary')">Test</button>
                     </div>
+                    <div class="endpoint">
+                        <span><span class="method get">GET</span> /api/chat/rooms</span>
+                        <button onclick="testEndpoint('/api/chat/rooms')">Test</button>
+                    </div>
+                    <div class="endpoint">
+                        <span><span class="method post">POST</span> /api/chat/rooms</span>
+                        <button onclick="createChatRoom()">Test</button>
+                    </div>
+                    <div class="endpoint">
+                        <span><span class="method get">GET</span> /api/payments/methods</span>
+                        <button onclick="testEndpoint('/api/payments/methods')">Test</button>
+                    </div>
+                    <div class="endpoint">
+                        <span><span class="method post">POST</span> /api/payments/process</span>
+                        <button onclick="processPayment()">Test</button>
+                    </div>
+                    <div class="endpoint">
+                        <span><span class="method get">GET</span> /api/images/all</span>
+                        <button onclick="testEndpoint('/api/images')">Test</button>
+                    </div>
+                    <div class="endpoint">
+                        <span><span class="method put">PUT</span> /api/orders/:orderId</span>
+                        <button onclick="updateOrder()">Test</button>
+                    </div>
+                    <div class="endpoint">
+                        <span><span class="method put">PUT</span> /api/inventory/:phoneId</span>
+                        <button onclick="updateInventory()">Test</button>
+                    </div>
+                    <div class="endpoint">
+                        <span><span class="method post">POST</span> /api/phones/bulk</span>
+                        <button onclick="bulkCreatePhones()">Test</button>
+                    </div>
+                    <div class="endpoint">
+                        <span><span class="method delete">DELETE</span> /api/phones/bulk</span>
+                        <button onclick="bulkDeletePhones()">Test</button>
+                    </div>
+                    <div class="endpoint">
+                        <span><span class="method delete">DELETE</span> /api/cart/:userId</span>
+                        <button onclick="clearCart()">Test</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -690,6 +730,121 @@
                 sendMessage();
             }
         });
+        
+        function createChatRoom() {
+            fetch('/api/chat/rooms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: 'Test Room ' + Date.now(),
+                    description: 'Test chat room'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage('💬 Chat room created: ' + data.room.name, 'system-message');
+            })
+            .catch(error => {
+                addMessage('❌ Create chat room error: ' + error.message, 'message');
+            });
+        }
+        
+        function processPayment() {
+            fetch('/api/payments/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: 'order_' + Date.now(),
+                    amount: 999,
+                    method: 'card'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage('💳 Payment processed: ' + data.payment.id, 'system-message');
+            })
+            .catch(error => {
+                addMessage('❌ Payment error: ' + error.message, 'message');
+            });
+        }
+        
+        function updateOrder() {
+            fetch('/api/orders/test-order', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'processing' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage('📦 Order updated', 'system-message');
+            })
+            .catch(error => {
+                addMessage('❌ Update order error: ' + error.message, 'message');
+            });
+        }
+        
+        function updateInventory() {
+            fetch('/api/inventory/iphone-15-pro', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantity: 50, inStock: true })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage('📦 Inventory updated', 'system-message');
+            })
+            .catch(error => {
+                addMessage('❌ Update inventory error: ' + error.message, 'message');
+            });
+        }
+        
+        function bulkCreatePhones() {
+            fetch('/api/phones/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phones: [
+                        { brand: 'Test', model: 'Phone 1', price: 599 },
+                        { brand: 'Test', model: 'Phone 2', price: 699 }
+                    ]
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage('📱 Bulk created: ' + data.created.length + ' phones', 'system-message');
+            })
+            .catch(error => {
+                addMessage('❌ Bulk create error: ' + error.message, 'message');
+            });
+        }
+        
+        function bulkDeletePhones() {
+            fetch('/api/phones/bulk', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: ['test-1', 'test-2'] })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage('🗑️ Bulk deleted: ' + data.deleted.length + ' phones', 'system-message');
+            })
+            .catch(error => {
+                addMessage('❌ Bulk delete error: ' + error.message, 'message');
+            });
+        }
+        
+        function clearCart() {
+            fetch('/api/cart/demo-user', {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage('🛒 Cart cleared', 'system-message');
+            })
+            .catch(error => {
+                addMessage('❌ Clear cart error: ' + error.message, 'message');
+            });
+        }
     </script>
 </body>
 </html>

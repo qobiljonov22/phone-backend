@@ -1,5 +1,5 @@
 // Order management functionality
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // In-memory orders storage (in production, use database)
@@ -210,4 +210,4 @@ function getStatusMessage(status) {
   return messages[status] || 'Status updated';
 }
 
-module.exports = router;
+export default router;

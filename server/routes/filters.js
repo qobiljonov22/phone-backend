@@ -1,5 +1,5 @@
 // Advanced filtering system for phones
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // Get available filter options
@@ -351,4 +351,4 @@ function generateFilterSuggestions(appliedFilters, resultCount) {
   return suggestions;
 }
 
-module.exports = router;
+export default router;

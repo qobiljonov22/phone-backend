@@ -1,5 +1,5 @@
 // Reviews and ratings functionality
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // In-memory reviews storage
@@ -246,4 +246,4 @@ function calculateReviewStats(reviews) {
   };
 }
 
-module.exports = router;
+export default router;

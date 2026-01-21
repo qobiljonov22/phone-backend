@@ -1,5 +1,5 @@
 // Product categories management
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // Categories data based on Figma design
@@ -310,4 +310,4 @@ router.get('/:categoryId/stats', (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;

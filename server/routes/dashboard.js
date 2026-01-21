@@ -1,5 +1,5 @@
 // Admin dashboard with comprehensive metrics
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // Main dashboard overview
@@ -452,4 +452,4 @@ function generateHourlyData() {
   return data;
 }
 
-module.exports = router;
+export default router;

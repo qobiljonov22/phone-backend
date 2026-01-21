@@ -26,6 +26,9 @@ import wishlistRoutes from './routes/wishlist.js';
 import filtersRoutes from './routes/filters.js';
 import comparisonRoutes from './routes/comparison.js';
 import dashboardRoutes from './routes/dashboard.js';
+import modalsRoutes from './routes/modals.js';
+import newsletterRoutes from './routes/newsletter.js';
+import alertsRoutes from './routes/alerts.js';
 
 dotenv.config();
 
@@ -147,6 +150,10 @@ const broadcast = (data) => {
 
 // API Routes
 app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+app.get('/demo', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/demo.html'));
 });
 
@@ -164,11 +171,19 @@ app.get('/api', (req, res) => {
         get: 'GET /api/phones/:id',
         create: 'POST /api/phones',
         update: 'PUT /api/phones/:id',
-        delete: 'DELETE /api/phones/:id'
+        delete: 'DELETE /api/phones/:id',
+        bulk: {
+          create: 'POST /api/phones/bulk',
+          delete: 'DELETE /api/phones/bulk'
+        }
       },
       search: 'GET /api/search',
       featured: 'GET /api/featured',
       brands: 'GET /api/brands',
+      inventory: {
+        get: 'GET /api/inventory/:phoneId',
+        update: 'PUT /api/inventory/:phoneId'
+      },
       users: 'GET /api/users',
       cart: 'GET /api/cart/:userId',
       orders: 'GET /api/orders',
@@ -180,9 +195,50 @@ app.get('/api', (req, res) => {
       compare: 'POST /api/compare',
       dashboard: 'GET /api/dashboard',
       tracking: 'GET /api/tracking',
-      payments: 'GET /api/payments',
+      payments: {
+        methods: 'GET /api/payments/methods',
+        process: 'POST /api/payments/process',
+        get: 'GET /api/payments/:paymentId'
+      },
       admin: 'GET /api/admin',
       images: 'GET /api/images',
+      chat: {
+        rooms: {
+          list: 'GET /api/chat/rooms',
+          create: 'POST /api/chat/rooms'
+        }
+      },
+      modals: {
+        callback: {
+          create: 'POST /api/callback',
+          list: 'GET /api/callback'
+        },
+        lowprice: {
+          create: 'POST /api/lowprice',
+          list: 'GET /api/lowprice'
+        },
+        oneclick: 'POST /api/oneclick',
+        credit: {
+          create: 'POST /api/credit',
+          list: 'GET /api/credit'
+        },
+        trade: {
+          create: 'POST /api/trade',
+          list: 'GET /api/trade'
+        }
+      },
+      newsletter: {
+        subscribe: 'POST /api/newsletter/subscribe',
+        unsubscribe: 'POST /api/newsletter/unsubscribe',
+        subscribers: 'GET /api/newsletter/subscribers'
+      },
+      alerts: {
+        price: 'POST /api/alerts/price',
+        stock: 'POST /api/alerts/stock',
+        user: 'GET /api/alerts/user',
+        list: 'GET /api/alerts',
+        delete: 'DELETE /api/alerts/:alertId'
+      },
       broadcast: 'POST /api/broadcast'
     },
     websocket: {
@@ -210,6 +266,27 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Helper function to format price in so'm (multiply by 1000 for USD to so'm conversion)
+const formatPrice = (price) => {
+  // Convert USD to so'm (1 USD = ~12000 so'm)
+  return Math.round(price * 12000);
+};
+
+// Helper function to format phone data for UI
+const formatPhoneForUI = (phone) => {
+  return {
+    ...phone,
+    priceFormatted: formatPrice(phone.price).toLocaleString('uz-UZ') + ' so\'m',
+    originalPriceFormatted: phone.originalPrice ? formatPrice(phone.originalPrice).toLocaleString('uz-UZ') + ' so\'m' : null,
+    priceInSom: formatPrice(phone.price),
+    originalPriceInSom: phone.originalPrice ? formatPrice(phone.originalPrice) : null,
+    displayName: `${phone.brand} ${phone.model}`,
+    mainImage: phone.images?.[0] || '/uploads/phones/default.jpg',
+    inStockText: phone.inStock ? 'Mavjud' : 'Mavjud emas',
+    ratingStars: '⭐'.repeat(Math.floor(phone.rating || 0))
+  };
+};
+
 // Phones API
 app.get('/api/phones', (req, res) => {
   const { page = 1, limit = 10, brand, minPrice, maxPrice, sort } = req.query;
@@ -220,12 +297,14 @@ app.get('/api/phones', (req, res) => {
     phones = phones.filter(p => p.brand?.toLowerCase().includes(brand.toLowerCase()));
   }
   
-  // Filter by price
+  // Filter by price (in so'm)
   if (minPrice) {
-    phones = phones.filter(p => p.price >= parseFloat(minPrice));
+    const minPriceUSD = parseFloat(minPrice) / 12000;
+    phones = phones.filter(p => p.price >= minPriceUSD);
   }
   if (maxPrice) {
-    phones = phones.filter(p => p.price <= parseFloat(maxPrice));
+    const maxPriceUSD = parseFloat(maxPrice) / 12000;
+    phones = phones.filter(p => p.price <= maxPriceUSD);
   }
   
   // Sort
@@ -235,6 +314,9 @@ app.get('/api/phones', (req, res) => {
     phones.sort((a, b) => b.price - a.price);
   } else if (sort === 'name') {
     phones.sort((a, b) => (a.model || '').localeCompare(b.model || ''));
+  } else {
+    // Default: newest first
+    phones.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }
   
   // Pagination
@@ -242,8 +324,11 @@ app.get('/api/phones', (req, res) => {
   const endIndex = startIndex + parseInt(limit);
   const paginatedPhones = phones.slice(startIndex, endIndex);
   
+  // Format phones for UI
+  const formattedPhones = paginatedPhones.map(formatPhoneForUI);
+  
   res.json({
-    phones: paginatedPhones,
+    phones: formattedPhones,
     pagination: {
       page: parseInt(page),
       limit: parseInt(limit),
@@ -258,10 +343,10 @@ app.get('/api/phones/:id', (req, res) => {
   const phone = phonesData.phones?.[id];
   
   if (!phone) {
-    return res.status(404).json({ error: 'Phone not found' });
+    return res.status(404).json({ error: 'Phone not found', message: 'Telefon topilmadi' });
   }
   
-  res.json(phone);
+  res.json(formatPhoneForUI(phone));
 });
 
 app.post('/api/phones', (req, res) => {
@@ -322,6 +407,181 @@ app.delete('/api/phones/:id', (req, res) => {
   res.json({ message: 'Phone deleted successfully' });
 });
 
+// Bulk operations
+app.post('/api/phones/bulk', (req, res) => {
+  const { phones } = req.body;
+  
+  if (!Array.isArray(phones) || phones.length === 0) {
+    return res.status(400).json({ error: 'Phones array is required' });
+  }
+  
+  const created = [];
+  const errors = [];
+  
+  phones.forEach((phone, index) => {
+    try {
+      const id = phone.id || `phone-${Date.now()}-${index}`;
+      phonesData.phones[id] = {
+        ...phone,
+        id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      created.push(phonesData.phones[id]);
+    } catch (error) {
+      errors.push({ index, error: error.message });
+    }
+  });
+  
+  savePhones();
+  broadcast({ type: 'phones_bulk_created', count: created.length });
+  
+  res.status(201).json({
+    message: `${created.length} phones created successfully`,
+    created,
+    errors: errors.length > 0 ? errors : undefined
+  });
+});
+
+app.delete('/api/phones/bulk', (req, res) => {
+  const { ids } = req.body;
+  
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'IDs array is required' });
+  }
+  
+  const deleted = [];
+  const notFound = [];
+  
+  ids.forEach(id => {
+    if (phonesData.phones?.[id]) {
+      delete phonesData.phones[id];
+      deleted.push(id);
+    } else {
+      notFound.push(id);
+    }
+  });
+  
+  savePhones();
+  broadcast({ type: 'phones_bulk_deleted', count: deleted.length });
+  
+  res.json({
+    message: `${deleted.length} phones deleted successfully`,
+    deleted,
+    notFound: notFound.length > 0 ? notFound : undefined
+  });
+});
+
+// Inventory management
+app.get('/api/inventory/:phoneId', (req, res) => {
+  const { phoneId } = req.params;
+  const phone = phonesData.phones?.[phoneId];
+  
+  if (!phone) {
+    return res.status(404).json({ error: 'Phone not found' });
+  }
+  
+  res.json({
+    phoneId,
+    inStock: phone.inStock || false,
+    quantity: phone.quantity || 0,
+    reserved: phone.reserved || 0,
+    available: (phone.quantity || 0) - (phone.reserved || 0),
+    lastUpdated: phone.updatedAt || phone.createdAt
+  });
+});
+
+app.put('/api/inventory/:phoneId', (req, res) => {
+  const { phoneId } = req.params;
+  const { quantity, inStock, reserved } = req.body;
+  
+  if (!phonesData.phones?.[phoneId]) {
+    return res.status(404).json({ error: 'Phone not found' });
+  }
+  
+  const phone = phonesData.phones[phoneId];
+  
+  if (quantity !== undefined) phone.quantity = quantity;
+  if (inStock !== undefined) phone.inStock = inStock;
+  if (reserved !== undefined) phone.reserved = reserved;
+  phone.updatedAt = new Date().toISOString();
+  
+  savePhones();
+  broadcast({ 
+    type: 'inventory_updated', 
+    phoneId, 
+    inventory: {
+      quantity: phone.quantity,
+      inStock: phone.inStock,
+      available: (phone.quantity || 0) - (phone.reserved || 0)
+    }
+  });
+  
+  res.json({
+    message: 'Inventory updated successfully',
+    phoneId,
+    inventory: {
+      quantity: phone.quantity,
+      inStock: phone.inStock,
+      reserved: phone.reserved,
+      available: (phone.quantity || 0) - (phone.reserved || 0)
+    }
+  });
+});
+
+// Chat rooms endpoint
+app.get('/api/chat/rooms', (req, res) => {
+  // Simple chat rooms implementation
+  const rooms = [
+    {
+      id: 'general',
+      name: 'General Discussion',
+      description: 'General phone store discussion',
+      members: clients.size,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'support',
+      name: 'Customer Support',
+      description: 'Get help with your orders',
+      members: 0,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'reviews',
+      name: 'Product Reviews',
+      description: 'Share your phone reviews',
+      members: 0,
+      createdAt: new Date().toISOString()
+    }
+  ];
+  
+  res.json({ rooms });
+});
+
+app.post('/api/chat/rooms', (req, res) => {
+  const { name, description } = req.body;
+  
+  if (!name) {
+    return res.status(400).json({ error: 'Room name is required' });
+  }
+  
+  const room = {
+    id: `room-${Date.now()}`,
+    name,
+    description: description || '',
+    members: 0,
+    createdAt: new Date().toISOString()
+  };
+  
+  broadcast({ type: 'chat_room_created', room });
+  
+  res.status(201).json({
+    message: 'Chat room created successfully',
+    room
+  });
+});
+
 // Search endpoint
 app.get('/api/search', (req, res) => {
   const { q, category, brand, minPrice, maxPrice } = req.query;
@@ -345,25 +605,33 @@ app.get('/api/search', (req, res) => {
   }
   
   if (minPrice) {
-    phones = phones.filter(p => p.price >= parseFloat(minPrice));
+    const minPriceUSD = parseFloat(minPrice) / 12000;
+    phones = phones.filter(p => p.price >= minPriceUSD);
   }
   
   if (maxPrice) {
-    phones = phones.filter(p => p.price <= parseFloat(maxPrice));
+    const maxPriceUSD = parseFloat(maxPrice) / 12000;
+    phones = phones.filter(p => p.price <= maxPriceUSD);
   }
   
-  res.json({ phones, count: phones.length });
+  // Format phones for UI
+  const formattedPhones = phones.map(formatPhoneForUI);
+  
+  res.json({ phones: formattedPhones, count: phones.length });
 });
 
 // Featured phones
 app.get('/api/featured', (req, res) => {
   const phones = Object.values(phonesData.phones || {});
   const featured = phones
-    .filter(p => p.rating >= 4.5 || p.tags?.includes('bestseller'))
+    .filter(p => p.rating >= 4.5 || p.tags?.includes('bestseller') || p.tags?.includes('new'))
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-    .slice(0, 10);
+    .slice(0, 12); // Show 12 featured phones
   
-  res.json({ phones: featured });
+  // Format phones for UI
+  const formattedPhones = featured.map(formatPhoneForUI);
+  
+  res.json({ phones: formattedPhones });
 });
 
 // Brands endpoint
@@ -395,6 +663,9 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/filters', filtersRoutes);
 app.use('/api/compare', comparisonRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api', modalsRoutes);
+app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/alerts', alertsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

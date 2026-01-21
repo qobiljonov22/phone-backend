@@ -1,5 +1,5 @@
 // Enhanced wishlist functionality
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // In-memory wishlist storage
@@ -345,4 +345,4 @@ function getMockPhoneDetails(phoneId) {
   };
 }
 
-module.exports = router;
+export default router;

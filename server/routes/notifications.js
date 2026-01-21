@@ -1,5 +1,5 @@
 // Notification system
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // In-memory notifications storage
@@ -205,4 +205,4 @@ router.get('/stats/summary', (req, res) => {
   res.json(stats);
 });
 
-module.exports = router;
+export default router;
