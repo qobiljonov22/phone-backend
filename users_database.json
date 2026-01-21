@@ -1,0 +1,37 @@
+{
+  "users": {
+    "user_1": {
+      "userId": "user_1",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+998901234567",
+      "address": {
+        "city": "Tashkent",
+        "street": "Main Street 123"
+      },
+      "preferences": {
+        "notifications": true,
+        "newsletter": false,
+        "currency": "USD",
+        "language": "en"
+      },
+      "wishlist": [
+        {
+          "phoneId": "iphone-15-pro",
+          "phone": {
+            "id": "iphone-15-pro",
+            "brand": "Apple",
+            "model": "iPhone 15 Pro",
+            "price": 999
+          },
+          "addedAt": "2026-01-21T21:30:52.923Z"
+        }
+      ],
+      "orderHistory": [],
+      "createdAt": "2026-01-21T21:29:54.890Z",
+      "updatedAt": "2026-01-21T21:30:52.923Z",
+      "isActive": true
+    }
+  },
+  "userCounter": 2
+}

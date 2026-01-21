@@ -7,14 +7,28 @@
       "price": 999,
       "originalPrice": 1199,
       "discount": 17,
-      "storage": ["128GB", "256GB", "512GB", "1TB"],
-      "colors": ["Natural Titanium", "Blue Titanium", "White Titanium", "Black Titanium"],
+      "storage": [
+        "128GB",
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "colors": [
+        "Natural Titanium",
+        "Blue Titanium",
+        "White Titanium",
+        "Black Titanium"
+      ],
       "inStock": true,
-      "quantity": 25,
+      "quantity": 50,
       "rating": 4.8,
       "reviews": 1250,
       "category": "flagship",
-      "tags": ["new", "bestseller", "premium"],
+      "tags": [
+        "new",
+        "bestseller",
+        "premium"
+      ],
       "images": [
         "/uploads/phones/iphone-15-pro-1.jpg",
         "/uploads/phones/iphone-15-pro-2.jpg",
@@ -57,9 +71,8 @@
         "express": true
       },
       "createdAt": "2024-01-10T12:00:00.000Z",
-      "updatedAt": "2024-01-11T16:00:00.000Z"
+      "updatedAt": "2026-01-21T21:33:25.555Z"
     },
-    
     "iphone-15": {
       "id": "iphone-15",
       "brand": "Apple",
@@ -67,14 +80,27 @@
       "price": 799,
       "originalPrice": 899,
       "discount": 11,
-      "storage": ["128GB", "256GB", "512GB"],
-      "colors": ["Pink", "Yellow", "Green", "Blue", "Black"],
+      "storage": [
+        "128GB",
+        "256GB",
+        "512GB"
+      ],
+      "colors": [
+        "Pink",
+        "Yellow",
+        "Green",
+        "Blue",
+        "Black"
+      ],
       "inStock": true,
       "quantity": 45,
       "rating": 4.6,
       "reviews": 890,
       "category": "premium",
-      "tags": ["new", "popular"],
+      "tags": [
+        "new",
+        "popular"
+      ],
       "images": [
         "/uploads/phones/iphone-15-1.jpg",
         "/uploads/phones/iphone-15-2.jpg",
@@ -116,7 +142,6 @@
       "createdAt": "2024-01-10T12:00:00.000Z",
       "updatedAt": "2024-01-11T16:00:00.000Z"
     },
-
     "galaxy-s24-ultra": {
       "id": "galaxy-s24-ultra",
       "brand": "Samsung",
@@ -124,14 +149,27 @@
       "price": 1299,
       "originalPrice": 1499,
       "discount": 13,
-      "storage": ["256GB", "512GB", "1TB"],
-      "colors": ["Titanium Gray", "Titanium Black", "Titanium Violet", "Titanium Yellow"],
+      "storage": [
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "colors": [
+        "Titanium Gray",
+        "Titanium Black",
+        "Titanium Violet",
+        "Titanium Yellow"
+      ],
       "inStock": true,
       "quantity": 18,
       "rating": 4.7,
       "reviews": 890,
       "category": "flagship",
-      "tags": ["new", "s-pen", "ai"],
+      "tags": [
+        "new",
+        "s-pen",
+        "ai"
+      ],
       "images": [
         "/uploads/phones/galaxy-s24-ultra-1.jpg",
         "/uploads/phones/galaxy-s24-ultra-2.jpg",
@@ -176,7 +214,6 @@
       "createdAt": "2024-01-10T12:00:00.000Z",
       "updatedAt": "2024-01-11T16:00:00.000Z"
     },
-
     "galaxy-s24": {
       "id": "galaxy-s24",
       "brand": "Samsung",
@@ -184,14 +221,26 @@
       "price": 899,
       "originalPrice": 999,
       "discount": 10,
-      "storage": ["128GB", "256GB"],
-      "colors": ["Onyx Black", "Marble Gray", "Cobalt Violet", "Amber Yellow"],
+      "storage": [
+        "128GB",
+        "256GB"
+      ],
+      "colors": [
+        "Onyx Black",
+        "Marble Gray",
+        "Cobalt Violet",
+        "Amber Yellow"
+      ],
       "inStock": true,
       "quantity": 32,
       "rating": 4.5,
       "reviews": 654,
       "category": "premium",
-      "tags": ["new", "ai", "compact"],
+      "tags": [
+        "new",
+        "ai",
+        "compact"
+      ],
       "images": [
         "/uploads/phones/galaxy-s24-1.jpg",
         "/uploads/phones/galaxy-s24-2.jpg",
@@ -233,7 +282,6 @@
       "createdAt": "2024-01-10T12:00:00.000Z",
       "updatedAt": "2024-01-11T16:00:00.000Z"
     },
-
     "pixel-8-pro": {
       "id": "pixel-8-pro",
       "brand": "Google",
@@ -241,14 +289,26 @@
       "price": 999,
       "originalPrice": 1099,
       "discount": 9,
-      "storage": ["128GB", "256GB", "512GB"],
-      "colors": ["Obsidian", "Porcelain", "Bay"],
+      "storage": [
+        "128GB",
+        "256GB",
+        "512GB"
+      ],
+      "colors": [
+        "Obsidian",
+        "Porcelain",
+        "Bay"
+      ],
       "inStock": true,
       "quantity": 15,
       "rating": 4.6,
       "reviews": 432,
       "category": "flagship",
-      "tags": ["ai", "camera", "pure-android"],
+      "tags": [
+        "ai",
+        "camera",
+        "pure-android"
+      ],
       "images": [
         "/uploads/phones/pixel-8-pro-1.jpg",
         "/uploads/phones/pixel-8-pro-2.jpg",
@@ -290,7 +350,6 @@
       "createdAt": "2024-01-10T12:00:00.000Z",
       "updatedAt": "2024-01-11T16:00:00.000Z"
     },
-
     "oneplus-12": {
       "id": "oneplus-12",
       "brand": "OnePlus",
@@ -298,14 +357,25 @@
       "price": 799,
       "originalPrice": 899,
       "discount": 11,
-      "storage": ["256GB", "512GB"],
-      "colors": ["Silky Black", "Flowy Emerald", "Sunset Dune"],
+      "storage": [
+        "256GB",
+        "512GB"
+      ],
+      "colors": [
+        "Silky Black",
+        "Flowy Emerald",
+        "Sunset Dune"
+      ],
       "inStock": true,
       "quantity": 22,
       "rating": 4.4,
       "reviews": 298,
       "category": "premium",
-      "tags": ["fast-charging", "gaming", "performance"],
+      "tags": [
+        "fast-charging",
+        "gaming",
+        "performance"
+      ],
       "images": [
         "/uploads/phones/oneplus-12-1.jpg",
         "/uploads/phones/oneplus-12-2.jpg",
@@ -346,15 +416,43 @@
       },
       "createdAt": "2024-01-10T12:00:00.000Z",
       "updatedAt": "2024-01-11T16:00:00.000Z"
+    },
+    "phone-1769030074868-0": {
+      "brand": "Test",
+      "model": "Phone 1",
+      "price": 599,
+      "id": "phone-1769030074868-0",
+      "createdAt": "2026-01-21T21:14:34.868Z",
+      "updatedAt": "2026-01-21T21:14:34.868Z"
+    },
+    "phone-1769030074868-1": {
+      "brand": "Test",
+      "model": "Phone 2",
+      "price": 699,
+      "id": "phone-1769030074868-1",
+      "createdAt": "2026-01-21T21:14:34.868Z",
+      "updatedAt": "2026-01-21T21:14:34.868Z"
+    },
+    "phone-1769032854964": {
+      "brand": "Test Brand",
+      "model": "Test Model 1769032854963",
+      "price": 599,
+      "storage": [
+        "128GB"
+      ],
+      "colors": [
+        "Black"
+      ],
+      "id": "phone-1769032854964",
+      "createdAt": "2026-01-21T22:00:54.964Z",
+      "updatedAt": "2026-01-21T22:00:54.964Z"
     }
   },
-  
   "users": {},
   "orders": {},
   "cart": {},
   "wishlist": {},
   "reviews": {},
-  
   "categories": {
     "flagship": {
       "id": "flagship",
@@ -381,7 +479,6 @@
       "popular": false
     }
   },
-  
   "brands": {
     "apple": {
       "id": "apple",
@@ -416,7 +513,6 @@
       "description": "Never Settle - yuqori unumdorlik"
     }
   },
-  
   "metadata": {
     "totalPhones": 6,
     "totalBrands": 4,
