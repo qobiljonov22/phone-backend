@@ -948,20 +948,31 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
+// 404 handler - Check if it's an HTML request or API request
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    status: 'not_found',
-    error: 'Not found',
-    message: `Route ${req.method} ${req.path} not found`,
-    links: {
-      api: `${req.protocol}://${req.get('host')}/api`,
-      docs: `${req.protocol}://${req.get('host')}/demo`
-    },
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
+  // If request accepts HTML, serve 404.html page
+  const acceptsHtml = req.accepts('html');
+  const isApiRequest = req.path.startsWith('/api');
+  
+  if (acceptsHtml && !isApiRequest) {
+    // Serve 404 HTML page for non-API requests
+    res.status(404).sendFile(path.join(__dirname, '../public/404.html'));
+  } else {
+    // Return JSON for API requests
+    res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'Not found',
+      message: `Route ${req.method} ${req.path} not found`,
+      links: {
+        api: `${req.protocol}://${req.get('host')}/api`,
+        docs: `${req.protocol}://${req.get('host')}/demo`,
+        home: `${req.protocol}://${req.get('host')}/`
+      },
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
+  }
 });
 
 // Start server
