@@ -252,17 +252,38 @@ app.get('/api', (req, res) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  const phonesCount = Object.keys(phonesData.phones || {}).length;
+  const uptimeSeconds = Math.floor(process.uptime());
+  const uptimeMinutes = Math.floor(uptimeSeconds / 60);
+  const uptimeHours = Math.floor(uptimeMinutes / 60);
+  
   res.json({
+    success: true,
     status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    websocket: {
-      connected: clients.size,
-      status: 'active'
+    data: {
+      server: {
+        uptime: {
+          seconds: uptimeSeconds,
+          minutes: uptimeMinutes,
+          hours: uptimeHours,
+          formatted: `${uptimeHours}s ${uptimeMinutes % 60}m ${uptimeSeconds % 60}s`
+        },
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT,
+        nodeVersion: process.version
+      },
+      websocket: {
+        connected: clients.size,
+        status: 'active',
+        url: `ws://localhost:${PORT}`
+      },
+      database: {
+        phones: phonesCount,
+        status: phonesCount > 0 ? 'loaded' : 'empty'
+      }
     },
-    database: {
-      phones: Object.keys(phonesData.phones || {}).length
-    }
+    message: 'Server is running normally',
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -326,15 +347,45 @@ app.get('/api/phones', (req, res) => {
   
   // Format phones for UI
   const formattedPhones = paginatedPhones.map(formatPhoneForUI);
+  const totalPages = Math.ceil(phones.length / parseInt(limit));
+  const currentPage = parseInt(page);
   
   res.json({
-    phones: formattedPhones,
-    pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
-      total: phones.length,
-      pages: Math.ceil(phones.length / parseInt(limit))
-    }
+    success: true,
+    status: 'ok',
+    data: {
+      phones: formattedPhones,
+      pagination: {
+        currentPage: currentPage,
+        limit: parseInt(limit),
+        total: phones.length,
+        totalPages: totalPages,
+        hasNext: currentPage < totalPages,
+        hasPrev: currentPage > 1,
+        nextPage: currentPage < totalPages ? currentPage + 1 : null,
+        prevPage: currentPage > 1 ? currentPage - 1 : null
+      },
+      filters: {
+        brand: brand || null,
+        minPrice: minPrice || null,
+        maxPrice: maxPrice || null,
+        sort: sort || 'default'
+      },
+      meta: {
+        count: formattedPhones.length,
+        showing: `${(currentPage - 1) * parseInt(limit) + 1}-${Math.min(currentPage * parseInt(limit), phones.length)} of ${phones.length}`
+      }
+    },
+    message: `${formattedPhones.length} ta telefon topildi`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      first: currentPage > 1 ? `${req.protocol}://${req.get('host')}${req.path}?page=1&limit=${limit}` : null,
+      last: currentPage < totalPages ? `${req.protocol}://${req.get('host')}${req.path}?page=${totalPages}&limit=${limit}` : null,
+      next: currentPage < totalPages ? `${req.protocol}://${req.get('host')}${req.path}?page=${currentPage + 1}&limit=${limit}` : null,
+      prev: currentPage > 1 ? `${req.protocol}://${req.get('host')}${req.path}?page=${currentPage - 1}&limit=${limit}` : null
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -343,10 +394,38 @@ app.get('/api/phones/:id', (req, res) => {
   const phone = phonesData.phones?.[id];
   
   if (!phone) {
-    return res.status(404).json({ error: 'Phone not found', message: 'Telefon topilmadi' });
+    return res.status(404).json({ 
+      success: false,
+      error: 'Phone not found', 
+      message: 'Telefon topilmadi',
+      data: null,
+      timestamp: new Date().toISOString()
+    });
   }
   
-  res.json(formatPhoneForUI(phone));
+  const formattedPhone = formatPhoneForUI(phone);
+  
+  res.json({
+    success: true,
+    status: 'ok',
+    data: formattedPhone,
+    message: 'Telefon ma\'lumotlari muvaffaqiyatli yuklandi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      images: formattedPhone.images?.map(img => `${req.protocol}://${req.get('host')}${img}`) || [],
+      related: `${req.protocol}://${req.get('host')}/api/phones?brand=${encodeURIComponent(phone.brand)}&limit=5`
+    },
+    meta: {
+      id: phone.id,
+      brand: phone.brand,
+      model: phone.model,
+      inStock: phone.inStock,
+      rating: phone.rating,
+      reviews: phone.reviews
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 app.post('/api/phones', (req, res) => {
@@ -363,9 +442,23 @@ app.post('/api/phones', (req, res) => {
   savePhones();
   broadcast({ type: 'phone_created', phone: phonesData.phones[id] });
   
+  const newPhone = formatPhoneForUI(phonesData.phones[id]);
+  
   res.status(201).json({
-    message: 'Phone created successfully',
-    phone: phonesData.phones[id]
+    success: true,
+    status: 'created',
+    data: newPhone,
+    message: 'Telefon muvaffaqiyatli qo\'shildi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/phones/${id}`,
+      list: `${req.protocol}://${req.get('host')}/api/phones`
+    },
+    meta: {
+      id: id,
+      createdAt: phonesData.phones[id].createdAt
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -387,9 +480,24 @@ app.put('/api/phones/:id', (req, res) => {
   savePhones();
   broadcast({ type: 'phone_updated', phone: phonesData.phones[id] });
   
+  const updatedPhone = formatPhoneForUI(phonesData.phones[id]);
+  
   res.json({
-    message: 'Phone updated successfully',
-    phone: phonesData.phones[id]
+    success: true,
+    status: 'updated',
+    data: updatedPhone,
+    message: 'Telefon muvaffaqiyatli yangilandi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/phones/${id}`,
+      list: `${req.protocol}://${req.get('host')}/api/phones`
+    },
+    meta: {
+      id: id,
+      updatedAt: phonesData.phones[id].updatedAt,
+      changes: Object.keys(req.body)
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -404,7 +512,23 @@ app.delete('/api/phones/:id', (req, res) => {
   savePhones();
   broadcast({ type: 'phone_deleted', id });
   
-  res.json({ message: 'Phone deleted successfully' });
+  res.json({ 
+    success: true,
+    status: 'deleted',
+    data: { 
+      id,
+      deleted: true
+    },
+    message: 'Telefon muvaffaqiyatli o\'chirildi',
+    links: {
+      list: `${req.protocol}://${req.get('host')}/api/phones`
+    },
+    meta: {
+      deletedAt: new Date().toISOString()
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // Bulk operations
@@ -617,7 +741,32 @@ app.get('/api/search', (req, res) => {
   // Format phones for UI
   const formattedPhones = phones.map(formatPhoneForUI);
   
-  res.json({ phones: formattedPhones, count: phones.length });
+  res.json({ 
+    success: true,
+    status: 'ok',
+    data: {
+      phones: formattedPhones,
+      count: phones.length,
+      query: q || null,
+      filters: {
+        category: category || null,
+        brand: brand || null,
+        minPrice: minPrice || null,
+        maxPrice: maxPrice || null
+      }
+    },
+    message: `${phones.length} ta natija topildi`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      allPhones: `${req.protocol}://${req.get('host')}/api/phones`
+    },
+    meta: {
+      searchQuery: q || null,
+      resultsCount: phones.length
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // Featured phones
@@ -631,14 +780,61 @@ app.get('/api/featured', (req, res) => {
   // Format phones for UI
   const formattedPhones = featured.map(formatPhoneForUI);
   
-  res.json({ phones: formattedPhones });
+  res.json({ 
+    success: true,
+    status: 'ok',
+    data: {
+      phones: formattedPhones,
+      count: formattedPhones.length
+    },
+    message: `${formattedPhones.length} ta tavsiya etilgan telefon`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      allPhones: `${req.protocol}://${req.get('host')}/api/phones`
+    },
+    meta: {
+      type: 'featured',
+      criteria: 'high_rating_or_bestseller',
+      averageRating: formattedPhones.length > 0 ? 
+        (formattedPhones.reduce((sum, p) => sum + (p.rating || 0), 0) / formattedPhones.length).toFixed(1) : 0
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // Brands endpoint
 app.get('/api/brands', (req, res) => {
   const phones = Object.values(phonesData.phones || {});
-  const brands = [...new Set(phones.map(p => p.brand).filter(Boolean))];
-  res.json({ brands });
+  const brands = [...new Set(phones.map(p => p.brand).filter(Boolean))].sort();
+  
+  // Count phones per brand
+  const brandsWithCount = brands.map(brand => ({
+    name: brand,
+    count: phones.filter(p => p.brand === brand).length,
+    icon: brand === 'Apple' ? '🍎' : brand === 'Samsung' ? '📱' : brand === 'Google' ? '🔵' : '📲'
+  }));
+  
+  res.json({ 
+    success: true,
+    status: 'ok',
+    data: {
+      brands: brands,
+      brandsWithCount: brandsWithCount,
+      total: brands.length
+    },
+    message: `${brands.length} ta brend topildi`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      phones: `${req.protocol}://${req.get('host')}/api/phones`
+    },
+    meta: {
+      totalPhones: phones.length,
+      topBrand: brandsWithCount.length > 0 ? brandsWithCount.sort((a, b) => b.count - a.count)[0] : null
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // Broadcast endpoint
