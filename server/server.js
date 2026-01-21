@@ -30,6 +30,12 @@ import modalsRoutes from './routes/modals.js';
 import newsletterRoutes from './routes/newsletter.js';
 import alertsRoutes from './routes/alerts.js';
 
+// Import middleware
+import requestLogger from './middleware/logger.js';
+import { securityHeaders, validateApiKey } from './middleware/security.js';
+import rateLimiter from './middleware/rateLimiter.js';
+import { validatePhone, validatePagination } from './middleware/validator.js';
+
 dotenv.config();
 
 // Load phones database
@@ -65,10 +71,32 @@ const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
+}));
+
+// Security headers
+app.use(securityHeaders);
+
+// Request logging
+app.use(requestLogger);
+
+// Rate limiting
+app.use('/api', rateLimiter(15 * 60 * 1000, 100)); // 100 requests per 15 minutes
+
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Static files
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads')); // Serve uploaded images
+
+// API key validation (optional)
+app.use('/api', validateApiKey);
 
 // WebSocket Server
 const wss = new WebSocketServer({ server });
@@ -159,11 +187,16 @@ app.get('/demo', (req, res) => {
 
 // API info endpoint
 app.get('/api', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}/api`;
+  
   res.json({
-    name: 'Phone Store Backend API',
-    version: '1.0.0',
-    description: 'Professional Phone E-commerce Backend API with WebSocket',
-    baseUrl: `http://localhost:${PORT}/api`,
+    success: true,
+    status: 'ok',
+    data: {
+      name: 'Phone Store Backend API',
+      version: '1.0.0',
+      description: 'Professional Phone E-commerce Backend API with WebSocket',
+      baseUrl: baseUrl,
     endpoints: {
       health: 'GET /api/health',
       phones: {
@@ -309,7 +342,7 @@ const formatPhoneForUI = (phone) => {
 };
 
 // Phones API
-app.get('/api/phones', (req, res) => {
+app.get('/api/phones', validatePagination, (req, res) => {
   const { page = 1, limit = 10, brand, minPrice, maxPrice, sort } = req.query;
   let phones = Object.values(phonesData.phones || {});
   
@@ -428,7 +461,7 @@ app.get('/api/phones/:id', (req, res) => {
   });
 });
 
-app.post('/api/phones', (req, res) => {
+app.post('/api/phones', validatePhone, (req, res) => {
   const phone = req.body;
   const id = phone.id || `phone-${Date.now()}`;
   
@@ -462,7 +495,7 @@ app.post('/api/phones', (req, res) => {
   });
 });
 
-app.put('/api/phones/:id', (req, res) => {
+app.put('/api/phones/:id', validatePhone, (req, res) => {
   const { id } = req.params;
   const updates = req.body;
   
@@ -866,17 +899,34 @@ app.use('/api/alerts', alertsRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(500).json({
-    error: 'Internal server error',
-    message: err.message
+  
+  // Don't leak error details in production
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  res.status(err.status || 500).json({
+    success: false,
+    status: 'error',
+    error: err.name || 'Internal server error',
+    message: err.message || 'An unexpected error occurred',
+    ...(isDevelopment && { stack: err.stack }),
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
+    success: false,
+    status: 'not_found',
     error: 'Not found',
-    message: `Route ${req.method} ${req.path} not found`
+    message: `Route ${req.method} ${req.path} not found`,
+    links: {
+      api: `${req.protocol}://${req.get('host')}/api`,
+      docs: `${req.protocol}://${req.get('host')}/demo`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
