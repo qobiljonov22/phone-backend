@@ -1,10 +1,47 @@
 // User management functionality
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
+
 const router = express.Router();
 
-// In-memory users storage (in production, use database with proper authentication)
+// Users database file
+const usersFile = 'users_database.json';
+
+// Load users from file or initialize empty
 let users = new Map();
 let userCounter = 1;
+
+// Load users from file
+const loadUsers = () => {
+  try {
+    if (fs.existsSync(usersFile)) {
+      const data = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+      users = new Map(Object.entries(data.users || {}));
+      userCounter = data.userCounter || 1;
+    }
+  } catch (error) {
+    console.error('Error loading users:', error);
+    users = new Map();
+    userCounter = 1;
+  }
+};
+
+// Save users to file
+const saveUsers = () => {
+  try {
+    const data = {
+      users: Object.fromEntries(users),
+      userCounter
+    };
+    fs.writeFileSync(usersFile, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error('Error saving users:', error);
+  }
+};
+
+// Initialize: load users on startup
+loadUsers();
 
 // Create user profile
 router.post('/register', (req, res) => {
@@ -50,6 +87,7 @@ router.post('/register', (req, res) => {
   };
   
   users.set(userId, user);
+  saveUsers(); // Save to file
   
   res.status(201).json({
     user: { ...user, password: undefined }, // Don't return password
@@ -91,6 +129,7 @@ router.put('/:userId', (req, res) => {
   
   user.updatedAt = new Date();
   users.set(userId, user);
+  saveUsers(); // Save to file
   
   res.json({
     user: { ...user, password: undefined },
@@ -144,6 +183,7 @@ router.post('/:userId/wishlist', (req, res) => {
   
   user.updatedAt = new Date();
   users.set(userId, user);
+  saveUsers(); // Save to file
   
   res.json({
     wishlist: user.wishlist,
@@ -171,6 +211,7 @@ router.delete('/:userId/wishlist/:phoneId', (req, res) => {
   user.wishlist.splice(itemIndex, 1);
   user.updatedAt = new Date();
   users.set(userId, user);
+  saveUsers(); // Save to file
   
   res.json({
     wishlist: user.wishlist,
@@ -191,6 +232,7 @@ router.put('/:userId/preferences', (req, res) => {
   user.preferences = { ...user.preferences, ...preferences };
   user.updatedAt = new Date();
   users.set(userId, user);
+  saveUsers(); // Save to file
   
   res.json({
     preferences: user.preferences,
