@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "NODE_ENV=development node server/server.js",
-    "prod": "NODE_ENV=production node server/server.js",
+    "dev": "cross-env NODE_ENV=development node server/server.js",
+    "prod": "cross-env NODE_ENV=production node server/server.js",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
@@ -25,5 +25,8 @@
     "express": "^5.2.1",
     "multer": "^1.4.5-lts.1",
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
