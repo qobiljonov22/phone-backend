@@ -519,7 +519,14 @@ app.put('/api/phones/:id', validatePhone, (req, res) => {
   const updates = req.body;
   
   if (!phonesData.phones?.[id]) {
-    return res.status(404).json({ error: 'Phone not found' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'Phone not found',
+      message: 'Telefon topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   phonesData.phones[id] = {
@@ -557,9 +564,17 @@ app.delete('/api/phones/:id', (req, res) => {
   const { id } = req.params;
   
   if (!phonesData.phones?.[id]) {
-    return res.status(404).json({ error: 'Phone not found' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'Phone not found',
+      message: 'Telefon topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
+  const deletedPhone = phonesData.phones[id];
   delete phonesData.phones[id];
   savePhones();
   broadcast({ type: 'phone_deleted', id });

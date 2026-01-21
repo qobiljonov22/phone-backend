@@ -32,18 +32,26 @@ router.post('/subscribe', (req, res) => {
   const { email, name } = req.body;
   
   if (!email) {
-    return res.status(400).json({ 
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
       error: 'Email is required',
-      message: 'Email manzili kiritilishi shart' 
+      message: 'Email manzili kiritilishi shart',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   }
   
   // Simple email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return res.status(400).json({ 
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
       error: 'Invalid email format',
-      message: 'Noto\'g\'ri email format' 
+      message: 'Noto\'g\'ri email format',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   }
   
@@ -52,9 +60,13 @@ router.post('/subscribe', (req, res) => {
   // Check if already subscribed
   const existing = data.subscribers.find(s => s.email.toLowerCase() === email.toLowerCase());
   if (existing) {
-    return res.status(409).json({ 
+    return res.status(409).json({
+      success: false,
+      status: 'already_exists',
       error: 'Already subscribed',
-      message: 'Bu email allaqachon ro\'yxatdan o\'tgan' 
+      message: 'Bu email allaqachon ro\'yxatdan o\'tgan',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   }
   
@@ -73,11 +85,23 @@ router.post('/subscribe', (req, res) => {
   
   res.status(201).json({
     success: true,
+    status: 'subscribed',
+    data: {
+      subscriber: {
+        id: subscriber.id,
+        email: subscriber.email,
+        name: subscriber.name,
+        subscribedAt: subscriber.subscribedAt,
+        status: subscriber.status
+      }
+    },
     message: 'Muvaffaqiyatli ro\'yxatdan o\'tdingiz!',
-    subscriber: {
-      id: subscriber.id,
-      email: subscriber.email
-    }
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/newsletter/subscribers/${subscriber.id}`,
+      unsubscribe: `${req.protocol}://${req.get('host')}/api/newsletter/unsubscribe`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -86,14 +110,28 @@ router.post('/unsubscribe', (req, res) => {
   const { email } = req.body;
   
   if (!email) {
-    return res.status(400).json({ error: 'Email is required' });
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
+      error: 'Email is required',
+      message: 'Email manzili kiritilishi shart',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   const data = loadSubscribers();
   const subscriber = data.subscribers.find(s => s.email.toLowerCase() === email.toLowerCase());
   
   if (!subscriber) {
-    return res.status(404).json({ error: 'Subscriber not found' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'Subscriber not found',
+      message: 'Obunachi topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   subscriber.status = 'unsubscribed';
@@ -102,7 +140,21 @@ router.post('/unsubscribe', (req, res) => {
   
   res.json({
     success: true,
-    message: 'Obuna bekor qilindi'
+    status: 'unsubscribed',
+    data: {
+      subscriber: {
+        id: subscriber.id,
+        email: subscriber.email,
+        status: subscriber.status,
+        unsubscribedAt: subscriber.unsubscribedAt
+      }
+    },
+    message: 'Obuna bekor qilindi',
+    links: {
+      subscribe: `${req.protocol}://${req.get('host')}/api/newsletter/subscribe`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -118,9 +170,23 @@ router.get('/subscribers', (req, res) => {
   }
   
   res.json({
-    subscribers,
-    total: subscribers.length,
-    active: subscribers.filter(s => s.status === 'active').length
+    success: true,
+    status: 'ok',
+    data: {
+      subscribers: subscribers,
+      stats: {
+        total: subscribers.length,
+        active: subscribers.filter(s => s.status === 'active').length,
+        unsubscribed: subscribers.filter(s => s.status === 'unsubscribed').length
+      }
+    },
+    message: `${subscribers.length} ta obunachi topildi`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      subscribe: `${req.protocol}://${req.get('host')}/api/newsletter/subscribe`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 

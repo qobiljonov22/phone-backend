@@ -54,15 +54,27 @@ router.post('/register', (req, res) => {
   } = req.body;
   
   if (!name || !email) {
-    return res.status(400).json({ 
-      error: 'Name and email are required' 
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
+      error: 'Name and email are required',
+      message: 'Ism va email kiritilishi shart',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   }
   
   // Check if user already exists
   const existingUser = Array.from(users.values()).find(user => user.email === email);
   if (existingUser) {
-    return res.status(409).json({ error: 'User with this email already exists' });
+    return res.status(409).json({
+      success: false,
+      status: 'already_exists',
+      error: 'User with this email already exists',
+      message: 'Bu email bilan foydalanuvchi allaqachon mavjud',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   const userId = `user_${userCounter++}`;
@@ -90,8 +102,19 @@ router.post('/register', (req, res) => {
   saveUsers(); // Save to file
   
   res.status(201).json({
-    user: { ...user, password: undefined }, // Don't return password
-    message: 'User registered successfully'
+    success: true,
+    status: 'created',
+    data: {
+      user: { ...user, password: undefined } // Don't return password
+    },
+    message: 'Foydalanuvchi muvaffaqiyatli ro\'yxatdan o\'tdi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/users/${user.userId}`,
+      profile: `${req.protocol}://${req.get('host')}/api/users/${user.userId}`,
+      wishlist: `${req.protocol}://${req.get('host')}/api/users/${user.userId}/wishlist`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -101,11 +124,30 @@ router.get('/:userId', (req, res) => {
   
   const user = users.get(userId);
   if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'User not found',
+      message: 'Foydalanuvchi topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
-  res.json({ 
-    user: { ...user, password: undefined } 
+  res.json({
+    success: true,
+    status: 'ok',
+    data: {
+      user: { ...user, password: undefined }
+    },
+    message: 'Foydalanuvchi ma\'lumotlari yuklandi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      update: `${req.protocol}://${req.get('host')}/api/users/${userId}`,
+      wishlist: `${req.protocol}://${req.get('host')}/api/users/${userId}/wishlist`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -116,7 +158,14 @@ router.put('/:userId', (req, res) => {
   
   const user = users.get(userId);
   if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'User not found',
+      message: 'Foydalanuvchi topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   // Update allowed fields
@@ -132,8 +181,18 @@ router.put('/:userId', (req, res) => {
   saveUsers(); // Save to file
   
   res.json({
-    user: { ...user, password: undefined },
-    message: 'Profile updated successfully'
+    success: true,
+    status: 'updated',
+    data: {
+      user: { ...user, password: undefined }
+    },
+    message: 'Profil muvaffaqiyatli yangilandi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      profile: `${req.protocol}://${req.get('host')}/api/users/${userId}`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -143,12 +202,31 @@ router.get('/:userId/wishlist', (req, res) => {
   
   const user = users.get(userId);
   if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'User not found',
+      message: 'Foydalanuvchi topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
-  res.json({ 
-    wishlist: user.wishlist || [],
-    count: user.wishlist?.length || 0
+  res.json({
+    success: true,
+    status: 'ok',
+    data: {
+      wishlist: user.wishlist || [],
+      count: user.wishlist?.length || 0,
+      isEmpty: (user.wishlist?.length || 0) === 0
+    },
+    message: `${user.wishlist?.length || 0} ta mahsulot xohlar ro'yxatida`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      add: `${req.protocol}://${req.get('host')}/api/users/${userId}/wishlist`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -157,12 +235,26 @@ router.post('/:userId/wishlist', (req, res) => {
   const { phoneId, phone } = req.body;
   
   if (!phoneId || !phone) {
-    return res.status(400).json({ error: 'Phone ID and phone details are required' });
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
+      error: 'Phone ID and phone details are required',
+      message: 'Telefon ID va telefon ma\'lumotlari kiritilishi shart',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   const user = users.get(userId);
   if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'User not found',
+      message: 'Foydalanuvchi topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   if (!user.wishlist) {
@@ -172,7 +264,14 @@ router.post('/:userId/wishlist', (req, res) => {
   // Check if already in wishlist
   const existingIndex = user.wishlist.findIndex(item => item.phoneId === phoneId);
   if (existingIndex > -1) {
-    return res.status(409).json({ error: 'Phone already in wishlist' });
+    return res.status(409).json({
+      success: false,
+      status: 'already_exists',
+      error: 'Phone already in wishlist',
+      message: 'Bu telefon allaqachon xohlar ro\'yxatida',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   user.wishlist.push({
@@ -185,9 +284,21 @@ router.post('/:userId/wishlist', (req, res) => {
   users.set(userId, user);
   saveUsers(); // Save to file
   
-  res.json({
-    wishlist: user.wishlist,
-    message: 'Phone added to wishlist'
+  res.status(201).json({
+    success: true,
+    status: 'added',
+    data: {
+      wishlist: user.wishlist,
+      addedItem: user.wishlist[user.wishlist.length - 1],
+      count: user.wishlist.length
+    },
+    message: 'Telefon xohlar ro\'yxatiga qo\'shildi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      remove: `${req.protocol}://${req.get('host')}/api/users/${userId}/wishlist/${phoneId}`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -196,26 +307,60 @@ router.delete('/:userId/wishlist/:phoneId', (req, res) => {
   
   const user = users.get(userId);
   if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'User not found',
+      message: 'Foydalanuvchi topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   if (!user.wishlist) {
-    return res.status(404).json({ error: 'Wishlist is empty' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'Wishlist is empty',
+      message: 'Xohlar ro\'yxati bo\'sh',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   const itemIndex = user.wishlist.findIndex(item => item.phoneId === phoneId);
   if (itemIndex === -1) {
-    return res.status(404).json({ error: 'Phone not found in wishlist' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'Phone not found in wishlist',
+      message: 'Telefon xohlar ro\'yxatida topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
+  const removedItem = user.wishlist[itemIndex];
   user.wishlist.splice(itemIndex, 1);
   user.updatedAt = new Date();
   users.set(userId, user);
   saveUsers(); // Save to file
   
   res.json({
-    wishlist: user.wishlist,
-    message: 'Phone removed from wishlist'
+    success: true,
+    status: 'removed',
+    data: {
+      wishlist: user.wishlist,
+      removedItem: removedItem,
+      count: user.wishlist.length
+    },
+    message: 'Telefon xohlar ro\'yxatidan olib tashlandi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/users/${userId}/wishlist`,
+      add: `${req.protocol}://${req.get('host')}/api/users/${userId}/wishlist`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -226,7 +371,14 @@ router.put('/:userId/preferences', (req, res) => {
   
   const user = users.get(userId);
   if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'User not found',
+      message: 'Foydalanuvchi topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   user.preferences = { ...user.preferences, ...preferences };
@@ -235,8 +387,18 @@ router.put('/:userId/preferences', (req, res) => {
   saveUsers(); // Save to file
   
   res.json({
-    preferences: user.preferences,
-    message: 'Preferences updated successfully'
+    success: true,
+    status: 'updated',
+    data: {
+      preferences: user.preferences
+    },
+    message: 'Sozlamalar muvaffaqiyatli yangilandi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      profile: `${req.protocol}://${req.get('host')}/api/users/${userId}`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -267,13 +429,27 @@ router.get('/', (req, res) => {
   }));
   
   res.json({
-    users: safeUsers,
-    pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
-      total: allUsers.length,
-      pages: Math.ceil(allUsers.length / parseInt(limit))
-    }
+    success: true,
+    status: 'ok',
+    data: {
+      users: safeUsers,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: allUsers.length,
+        pages: Math.ceil(allUsers.length / parseInt(limit)),
+        hasNext: parseInt(page) < Math.ceil(allUsers.length / parseInt(limit)),
+        hasPrev: parseInt(page) > 1,
+        showing: `${startIndex + 1}-${endIndex > allUsers.length ? allUsers.length : endIndex} of ${allUsers.length}`
+      }
+    },
+    message: `${paginatedUsers.length} ta foydalanuvchi topildi`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      register: `${req.protocol}://${req.get('host')}/api/users/register`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 

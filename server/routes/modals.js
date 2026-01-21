@@ -38,9 +38,13 @@ router.post('/callback', (req, res) => {
   const { phone, name, preferredTime, message } = req.body;
   
   if (!phone) {
-    return res.status(400).json({ 
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
       error: 'Phone number is required',
-      message: 'Telefon raqami kiritilishi shart' 
+      message: 'Telefon raqami kiritilishi shart',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   }
   
@@ -64,12 +68,23 @@ router.post('/callback', (req, res) => {
   
   res.status(201).json({
     success: true,
-    message: 'Callback so\'rovi qabul qilindi. Tez orada sizga qo\'ng\'iroq qilamiz!',
-    callback: {
-      id: callback.id,
-      phone: callback.phone,
-      status: callback.status
-    }
+    status: 'created',
+    data: {
+      callback: {
+        id: callback.id,
+        phone: callback.phone,
+        name: callback.name,
+        status: callback.status,
+        createdAt: callback.createdAt
+      }
+    },
+    message: 'Qo\'ng\'iroq so\'rovi qabul qilindi. Tez orada sizga qo\'ng\'iroq qilamiz!',
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/modals/callback/${callback.id}`,
+      list: `${req.protocol}://${req.get('host')}/api/modals/callback`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -93,13 +108,26 @@ router.get('/callback', (req, res) => {
   const paginatedItems = items.slice(startIndex, endIndex);
   
   res.json({
-    callbacks: paginatedItems,
-    pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
-      total: items.length,
-      pages: Math.ceil(items.length / parseInt(limit))
-    }
+    success: true,
+    status: 'ok',
+    data: {
+      callbacks: paginatedItems,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: items.length,
+        pages: Math.ceil(items.length / parseInt(limit)),
+        hasNext: parseInt(page) < Math.ceil(items.length / parseInt(limit)),
+        hasPrev: parseInt(page) > 1
+      }
+    },
+    message: `${paginatedItems.length} ta qo'ng'iroq so'rovi topildi`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      create: `${req.protocol}://${req.get('host')}/api/modals/callback`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -109,9 +137,13 @@ router.post('/lowprice', (req, res) => {
   const { phoneId, competitorUrl, competitorPrice, phone, name, email } = req.body;
   
   if (!phoneId || !competitorPrice) {
-    return res.status(400).json({ 
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
       error: 'Phone ID and competitor price are required',
-      message: 'Telefon ID va raqib narxi kiritilishi shart' 
+      message: 'Telefon ID va raqib narxi kiritilishi shart',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   }
   
@@ -137,20 +169,45 @@ router.post('/lowprice', (req, res) => {
   
   res.status(201).json({
     success: true,
+    status: 'created',
+    data: {
+      report: {
+        id: report.id,
+        phoneId: report.phoneId,
+        phone: report.phone,
+        competitorPrice: report.competitorPrice,
+        competitorUrl: report.competitorUrl,
+        status: report.status,
+        createdAt: report.createdAt
+      }
+    },
     message: 'Past narx haqidagi xabar qabul qilindi. Tekshirib ko\'ramiz!',
-    report: {
-      id: report.id,
-      phoneId: report.phoneId,
-      competitorPrice: report.competitorPrice,
-      status: report.status
-    }
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/modals/lowprice/${report.id}`,
+      list: `${req.protocol}://${req.get('host')}/api/modals/lowprice`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
 // GET /api/lowprice - Get all reports (admin)
 router.get('/lowprice', (req, res) => {
   const data = loadData(lowpriceFile);
-  res.json({ reports: data.items || [] });
+  res.json({
+    success: true,
+    status: 'ok',
+    data: {
+      reports: data.items || []
+    },
+    message: `${(data.items || []).length} ta past narx xabari topildi`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      create: `${req.protocol}://${req.get('host')}/api/modals/lowprice`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // ========== 1CLICK ORDER MODAL ==========
@@ -159,9 +216,13 @@ router.post('/oneclick', (req, res) => {
   const { phoneId, phone, name, address, paymentMethod } = req.body;
   
   if (!phoneId || !phone) {
-    return res.status(400).json({ 
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
       error: 'Phone ID and phone number are required',
-      message: 'Telefon ID va telefon raqami kiritilishi shart' 
+      message: 'Telefon ID va telefon raqami kiritilishi shart',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   }
   
@@ -187,12 +248,27 @@ router.post('/oneclick', (req, res) => {
   
   res.status(201).json({
     success: true,
-    message: 'Buyurtma qabul qilindi! Tez orada sizga qo\'ng\'iroq qilamiz.',
-    order: {
-      id: order.id,
-      phoneId: order.phoneId,
-      status: order.status
-    }
+    status: 'created',
+    data: {
+      order: {
+        id: order.id,
+        phoneId: order.phoneId,
+        phone: order.phone,
+        name: order.name,
+        address: order.address,
+        paymentMethod: order.paymentMethod,
+        type: order.type,
+        status: order.status,
+        createdAt: order.createdAt
+      }
+    },
+    message: 'Bir bosilish buyurtma qabul qilindi! Tez orada sizga qo\'ng\'iroq qilamiz.',
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/modals/oneclick/${order.id}`,
+      list: `${req.protocol}://${req.get('host')}/api/modals/oneclick`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -202,9 +278,13 @@ router.post('/credit', (req, res) => {
   const { phoneId, name, phone, email, passport, salary, creditAmount, months } = req.body;
   
   if (!phoneId || !name || !phone || !passport) {
-    return res.status(400).json({ 
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
       error: 'Required fields are missing',
-      message: 'Barcha majburiy maydonlar to\'ldirilishi shart' 
+      message: 'Barcha majburiy maydonlar to\'ldirilishi shart',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   }
   
@@ -232,21 +312,47 @@ router.post('/credit', (req, res) => {
   
   res.status(201).json({
     success: true,
+    status: 'created',
+    data: {
+      application: {
+        id: application.id,
+        phoneId: application.phoneId,
+        name: application.name,
+        phone: application.phone,
+        creditAmount: application.creditAmount,
+        months: application.months,
+        monthlyPayment: application.creditAmount / application.months,
+        status: application.status,
+        createdAt: application.createdAt
+      }
+    },
     message: 'Kredit arizasi qabul qilindi. Tez orada sizga qo\'ng\'iroq qilamiz!',
-    application: {
-      id: application.id,
-      phoneId: application.phoneId,
-      creditAmount: application.creditAmount,
-      months: application.months,
-      status: application.status
-    }
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/modals/credit/${application.id}`,
+      list: `${req.protocol}://${req.get('host')}/api/modals/credit`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
 // GET /api/credit - Get all applications (admin)
 router.get('/credit', (req, res) => {
   const data = loadData(creditFile);
-  res.json({ applications: data.items || [] });
+  res.json({
+    success: true,
+    status: 'ok',
+    data: {
+      applications: data.items || []
+    },
+    message: `${(data.items || []).length} ta kredit arizasi topildi`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      create: `${req.protocol}://${req.get('host')}/api/modals/credit`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // ========== TRADE-IN MODAL ==========
@@ -255,9 +361,13 @@ router.post('/trade', (req, res) => {
   const { newPhoneId, oldPhoneBrand, oldPhoneModel, oldPhoneCondition, name, phone, email } = req.body;
   
   if (!newPhoneId || !oldPhoneBrand || !oldPhoneModel || !name || !phone) {
-    return res.status(400).json({ 
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
       error: 'Required fields are missing',
-      message: 'Barcha majburiy maydonlar to\'ldirilishi shart' 
+      message: 'Barcha majburiy maydonlar to\'ldirilishi shart',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   }
   
@@ -285,21 +395,48 @@ router.post('/trade', (req, res) => {
   
   res.status(201).json({
     success: true,
+    status: 'created',
+    data: {
+      trade: {
+        id: trade.id,
+        newPhoneId: trade.newPhoneId,
+        oldPhoneBrand: trade.oldPhoneBrand,
+        oldPhoneModel: trade.oldPhoneModel,
+        oldPhoneCondition: trade.oldPhoneCondition,
+        name: trade.name,
+        phone: trade.phone,
+        estimatedValue: trade.estimatedValue,
+        status: trade.status,
+        createdAt: trade.createdAt
+      }
+    },
     message: 'Almashtirish so\'rovi qabul qilindi. Tez orada baholash natijasini e\'lon qilamiz!',
-    trade: {
-      id: trade.id,
-      newPhoneId: trade.newPhoneId,
-      oldPhoneBrand: trade.oldPhoneBrand,
-      oldPhoneModel: trade.oldPhoneModel,
-      status: trade.status
-    }
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/modals/trade/${trade.id}`,
+      list: `${req.protocol}://${req.get('host')}/api/modals/trade`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
 // GET /api/trade - Get all trade requests (admin)
 router.get('/trade', (req, res) => {
   const data = loadData(tradeFile);
-  res.json({ trades: data.items || [] });
+  res.json({
+    success: true,
+    status: 'ok',
+    data: {
+      trades: data.items || []
+    },
+    message: `${(data.items || []).length} ta almashtirish so'rovi topildi`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      create: `${req.protocol}://${req.get('host')}/api/modals/trade`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 export default router;
