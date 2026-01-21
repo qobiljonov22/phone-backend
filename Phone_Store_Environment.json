@@ -1,49 +1,56 @@
 {
-  "id": "phone-store-env",
-  "name": "Phone Store - Production",
-  "values": [
-    {
-      "key": "baseUrl",
-      "value": "https://apple-telemetrica-backend.iuaqqt.easypanel.host",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "base_url",
-      "value": "https://apple-telemetrica-backend.iuaqqt.easypanel.host",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "lastPhoneId",
-      "value": "",
-      "type": "any",
-      "enabled": true
-    },
-    {
-      "key": "lastImageId",
-      "value": "",
-      "type": "any",
-      "enabled": true
-    },
-    {
-      "key": "lastImagePath",
-      "value": "",
-      "type": "any",
-      "enabled": true
-    },
-    {
-      "key": "lastImageFilename",
-      "value": "",
-      "type": "any",
-      "enabled": true
-    },
-    {
-      "key": "imageId",
-      "value": "1736622791234",
-      "type": "any",
-      "enabled": true
-    }
-  ],
-  "_postman_variable_scope": "environment"
+	"id": "phone-store-env-2024",
+	"name": "Phone Store API - Environment",
+	"values": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3001",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "user_id",
+			"value": "user_1",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "phone_id",
+			"value": "iphone-15-pro",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "order_id",
+			"value": "ORD-1000",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "alert_id",
+			"value": "price_alert_1234567890",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "test_email",
+			"value": "test@example.com",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "test_phone",
+			"value": "+998901234567",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "default",
+			"enabled": true,
+			"description": "JWT token from login/register response"
+		}
+	],
+	"_postman_variable_scope": "environment"
 }

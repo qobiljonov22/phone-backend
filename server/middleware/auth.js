@@ -1,57 +1,110 @@
-// Simple API key authentication middleware
-const authenticateApiKey = (req, res, next) => {
-  const apiKey = req.headers['x-api-key'] || req.query.apiKey;
-  const validApiKey = process.env.API_KEY || 'phone-backend-2024';
+// Authentication middleware
+import { verifyToken } from '../routes/auth.js';
+import fs from 'fs';
+
+// Middleware to verify JWT token
+export const authenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization;
   
-  if (!apiKey) {
-    return res.status(401).json({ 
-      error: 'API key required',
-      message: 'Please provide API key in x-api-key header or apiKey query parameter'
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      status: 'unauthorized',
+      error: 'Authorization token required',
+      message: 'Tasdiqlash tokeni kerak',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
   }
   
-  if (apiKey !== validApiKey) {
-    return res.status(403).json({ 
-      error: 'Invalid API key',
-      message: 'The provided API key is not valid'
+  const token = authHeader.substring(7);
+  const payload = verifyToken(token);
+  
+  if (!payload) {
+    return res.status(401).json({
+      success: false,
+      status: 'unauthorized',
+      error: 'Invalid or expired token',
+      message: 'Token noto\'g\'ri yoki muddati o\'tgan',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
     });
+  }
+  
+  // Attach user info to request
+  req.user = {
+    userId: payload.userId,
+    email: payload.email
+  };
+  
+  next();
+};
+
+// Middleware to check if user is admin
+export const isAdmin = (req, res, next) => {
+  // First authenticate
+  authenticate(req, res, () => {
+    // Load user to check role
+    try {
+      const usersFile = 'users_database.json';
+      if (fs.existsSync(usersFile)) {
+        const data = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+        const users = new Map(Object.entries(data.users || {}));
+        const user = users.get(req.user.userId);
+        
+        if (!user || user.role !== 'admin') {
+          return res.status(403).json({
+            success: false,
+            status: 'forbidden',
+            error: 'Admin access required',
+            message: 'Admin huquqi kerak',
+            timestamp: new Date().toISOString(),
+            version: '1.0.0'
+          });
+        }
+        
+        req.user.role = 'admin';
+        next();
+      } else {
+        return res.status(403).json({
+          success: false,
+          status: 'forbidden',
+          error: 'Admin access required',
+          message: 'Admin huquqi kerak',
+          timestamp: new Date().toISOString(),
+          version: '1.0.0'
+        });
+      }
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        status: 'error',
+        error: 'Server error',
+        message: 'Server xatosi',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+      });
+    }
+  });
+};
+
+// Optional authentication (doesn't fail if no token)
+export const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    const payload = verifyToken(token);
+    
+    if (payload) {
+      req.user = {
+        userId: payload.userId,
+        email: payload.email
+      };
+    }
   }
   
   next();
 };
 
-// Rate limiting middleware
-const rateLimiter = (windowMs = 15 * 60 * 1000, maxRequests = 100) => {
-  const requests = new Map();
-  
-  return (req, res, next) => {
-    const clientId = req.ip || req.connection.remoteAddress;
-    const now = Date.now();
-    const windowStart = now - windowMs;
-    
-    if (!requests.has(clientId)) {
-      requests.set(clientId, []);
-    }
-    
-    const clientRequests = requests.get(clientId);
-    const recentRequests = clientRequests.filter(time => time > windowStart);
-    
-    if (recentRequests.length >= maxRequests) {
-      return res.status(429).json({
-        error: 'Too many requests',
-        message: `Rate limit exceeded. Max ${maxRequests} requests per ${windowMs / 1000} seconds.`,
-        retryAfter: Math.ceil((recentRequests[0] + windowMs - now) / 1000)
-      });
-    }
-    
-    recentRequests.push(now);
-    requests.set(clientId, recentRequests);
-    
-    next();
-  };
-};
-
-module.exports = {
-  authenticateApiKey,
-  rateLimiter
-};
+export default { authenticate, isAdmin, optionalAuth };

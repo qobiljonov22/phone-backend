@@ -1,457 +1,950 @@
 {
 	"info": {
-		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-		"name": "Phone Store API",
-		"description": "Phone Store Backend API Collection",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"_postman_id": "phone-store-api-2024",
+		"name": "Phone Store API - Complete Collection",
+		"description": "Professional Phone E-commerce Backend API Collection with all endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"version": "1.0.0"
 	},
 	"item": [
 		{
-			"name": "Health Check",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/health",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"health"
-					]
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+998901234567\",\n  \"address\": {\n    \"city\": \"Tashkent\",\n    \"street\": \"Main Street 123\"\n  },\n  \"preferences\": {\n    \"notifications\": true,\n    \"newsletter\": false,\n    \"currency\": \"USD\",\n    \"language\": \"en\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						},
+						"description": "Register a new user account"
+					}
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login with email and password"
+					}
+				},
+				{
+					"name": "Get Current User (Me)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"description": "JWT token from login/register"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "me"]
+						},
+						"description": "Get current authenticated user information"
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "refresh"]
+						},
+						"description": "Refresh JWT token"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "logout"]
+						},
+						"description": "Logout (client-side token removal)"
+					}
 				}
-			}
+			]
 		},
 		{
-			"name": "Get Phone by ID",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/phones/iphone-15-pro",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"phones",
-						"iphone-15-pro"
-					]
-				}
-			}
-		},
-		{
-			"name": "Search Phones",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/search?q=iphone&minPrice=500&maxPrice=1500",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"search"
-					],
-					"query": [
-						{
-							"key": "q",
-							"value": "iphone"
+			"name": "API Info",
+			"item": [
+				{
+					"name": "Get API Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api",
+							"host": ["{{base_url}}"],
+							"path": ["api"]
 						},
-						{
-							"key": "minPrice",
-							"value": "500"
-						},
-						{
-							"key": "maxPrice",
-							"value": "1500"
+						"description": "Get complete API information with all available endpoints"
+					}
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "health"]
 						}
-					]
-				}
-			}
-		},
-		{
-			"name": "Get Featured Phones",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/featured",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"featured"
-					]
-				}
-			}
-		},
-		{
-			"name": "Get Categories",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/categories",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"categories"
-					]
-				}
-			}
-		},
-		{
-			"name": "Get Brands",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/brands",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"brands"
-					]
-				}
-			}
-		},
-		{
-			"name": "Create Phone",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
 					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"brand\": \"Apple\",\n  \"model\": \"iPhone 15 Pro\",\n  \"price\": 999,\n  \"storage\": \"128GB\",\n  \"color\": \"Natural Titanium\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Phones",
+			"item": [
+				{
+					"name": "Get All Phones",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/phones?page=1&limit=10&brand=&minPrice=&maxPrice=&sort=",
+							"host": ["{{base_url}}"],
+							"path": ["api", "phones"],
+							"query": [
+								{"key": "page", "value": "1", "description": "Page number"},
+								{"key": "limit", "value": "10", "description": "Items per page"},
+								{"key": "brand", "value": "", "description": "Filter by brand"},
+								{"key": "minPrice", "value": "", "description": "Min price in so'm"},
+								{"key": "maxPrice", "value": "", "description": "Max price in so'm"},
+								{"key": "sort", "value": "", "description": "Sort: price_asc, price_desc, name"}
+							]
+						}
+					}
 				},
-				"url": {
-					"raw": "{{base_url}}/api/phones",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"phones"
-					]
-				}
-			}
-		},
-		{
-			"name": "Update Phone",
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+				{
+					"name": "Get Phone by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/phones/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "phones", "{{phone_id}}"]
+						}
 					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"price\": 899,\n  \"inStock\": true,\n  \"discount\": 10\n}"
 				},
-				"url": {
-					"raw": "{{base_url}}/api/phones/iphone-15-pro",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"phones",
-						"iphone-15-pro"
-					]
-				}
-			}
-		},
-		{
-			"name": "Delete Phone",
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+				{
+					"name": "Create Phone",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"phone-new-1\",\n  \"brand\": \"Apple\",\n  \"model\": \"iPhone 16\",\n  \"price\": 1099,\n  \"originalPrice\": 1299,\n  \"discount\": 15,\n  \"storage\": [\"128GB\", \"256GB\", \"512GB\"],\n  \"colors\": [\"Black\", \"White\", \"Blue\"],\n  \"inStock\": true,\n  \"quantity\": 50,\n  \"rating\": 4.9,\n  \"reviews\": 2000,\n  \"category\": \"flagship\",\n  \"tags\": [\"new\", \"bestseller\"],\n  \"images\": [\"/uploads/phones/iphone-16-1.jpg\"],\n  \"specifications\": {\n    \"display\": \"6.1\\\" Super Retina XDR OLED\",\n    \"processor\": \"A18 Bionic\",\n    \"camera\": \"48MP Main + 12MP Ultra Wide\",\n    \"battery\": \"3500 mAh\",\n    \"os\": \"iOS 18\"\n  },\n  \"description\": \"Latest iPhone model\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/phones",
+							"host": ["{{base_url}}"],
+							"path": ["api", "phones"]
+						}
 					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"reason\": \"Product discontinued\"\n}"
 				},
-				"url": {
-					"raw": "{{base_url}}/api/phones/iphone-15-pro",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"phones",
-						"iphone-15-pro"
-					]
-				}
-			}
-		},
-		{
-			"name": "Compare Phones",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+				{
+					"name": "Update Phone",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price\": 999,\n  \"quantity\": 30,\n  \"inStock\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/phones/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "phones", "{{phone_id}}"]
+						}
 					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"phoneIds\": [\"iphone-15-pro\", \"galaxy-s24-ultra\"]\n}"
 				},
-				"url": {
-					"raw": "{{base_url}}/api/compare",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"compare"
-					]
-				}
-			}
-		},
-		{
-			"name": "Send Notification",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+				{
+					"name": "Delete Phone",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/phones/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "phones", "{{phone_id}}"]
+						}
 					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"type\": \"info\",\n  \"title\": \"New Phone Alert\",\n  \"message\": \"iPhone 15 Pro is now available!\",\n  \"userId\": \"user123\"\n}"
 				},
-				"url": {
-					"raw": "{{base_url}}/api/notifications",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"notifications"
-					]
+				{
+					"name": "Bulk Create Phones",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phones\": [\n    {\n      \"id\": \"phone-1\",\n      \"brand\": \"Samsung\",\n      \"model\": \"Galaxy S24\",\n      \"price\": 899,\n      \"inStock\": true\n    },\n    {\n      \"id\": \"phone-2\",\n      \"brand\": \"Google\",\n      \"model\": \"Pixel 8\",\n      \"price\": 699,\n      \"inStock\": true\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/phones/bulk",
+							"host": ["{{base_url}}"],
+							"path": ["api", "phones", "bulk"]
+						}
+					}
 				}
-			}
+			]
 		},
 		{
-			"name": "Price Update",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+			"name": "Search & Filters",
+			"item": [
+				{
+					"name": "Search Phones",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/search?q=iphone&page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "search"],
+							"query": [
+								{"key": "q", "value": "iphone", "description": "Search query"},
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						}
 					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"newPrice\": 899,\n  \"oldPrice\": 999\n}"
 				},
-				"url": {
-					"raw": "{{base_url}}/api/price-update",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"price-update"
-					]
-				}
-			}
-		},
-		{
-			"name": "Stock Update",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+				{
+					"name": "Get Featured Phones",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/featured?limit=5",
+							"host": ["{{base_url}}"],
+							"path": ["api", "featured"],
+							"query": [
+								{"key": "limit", "value": "5"}
+							]
+						}
 					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"inStock\": true,\n  \"quantity\": 50\n}"
 				},
-				"url": {
-					"raw": "{{base_url}}/api/stock-update",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"stock-update"
-					]
-				}
-			}
-		},
-		{
-			"name": "Broadcast Message",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+				{
+					"name": "Get Brands",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/brands",
+							"host": ["{{base_url}}"],
+							"path": ["api", "brands"]
+						}
 					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"message\": \"Server maintenance tonight at 2 AM\",\n  \"type\": \"announcement\"\n}"
 				},
-				"url": {
-					"raw": "{{base_url}}/api/broadcast",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"broadcast"
-					]
-				}
-			}
-		},
-		{
-			"name": "Get Payment Methods",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/payments/methods",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"payments",
-						"methods"
-					]
-				}
-			}
-		},
-		{
-			"name": "Process Payment",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+				{
+					"name": "Get Filter Options",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/filters/options",
+							"host": ["{{base_url}}"],
+							"path": ["api", "filters", "options"]
+						}
 					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"orderId\": \"ORD123\",\n  \"amount\": 999,\n  \"currency\": \"USD\",\n  \"paymentMethod\": \"card\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+998901234567\",\n  \"address\": {\n    \"city\": \"Tashkent\",\n    \"street\": \"Main Street 123\"\n  },\n  \"preferences\": {\n    \"notifications\": true,\n    \"newsletter\": false,\n    \"currency\": \"USD\",\n    \"language\": \"en\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "register"]
+						}
+					}
 				},
-				"url": {
-					"raw": "{{base_url}}/api/payments/process",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"payments",
-						"process"
-					]
-				}
-			}
-		},
-		{
-			"name": "Create Order Tracking",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+				{
+					"name": "Get User Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}"]
+						}
 					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"orderId\": \"ORD123\",\n  \"phoneId\": \"iphone-15-pro\",\n  \"userId\": \"user123\"\n}"
 				},
-				"url": {
-					"raw": "{{base_url}}/api/tracking/create",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"tracking",
-						"create"
-					]
-				}
-			}
-		},
-		{
-			"name": "Get Order Tracking",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/tracking/ORD123",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"tracking",
-						"ORD123"
-					]
-				}
-			}
-		},
-		{
-			"name": "Admin Dashboard",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer admin-token-2024"
+				{
+					"name": "Update User Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Updated\",\n  \"phone\": \"+998901234568\",\n  \"address\": {\n    \"city\": \"Samarkand\",\n    \"street\": \"New Street 456\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}"]
+						}
 					}
-				],
-				"url": {
-					"raw": "{{base_url}}/api/admin/dashboard",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"admin",
-						"dashboard"
-					]
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users?page=1&limit=10&search=",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"},
+								{"key": "search", "value": ""}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Wishlist",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/wishlist",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}", "wishlist"]
+						}
+					}
+				},
+				{
+					"name": "Add to Wishlist",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"phone\": {\n    \"id\": \"iphone-15-pro\",\n    \"brand\": \"Apple\",\n    \"model\": \"iPhone 15 Pro\",\n    \"price\": 999\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/wishlist",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}", "wishlist"]
+						}
+					}
+				},
+				{
+					"name": "Remove from Wishlist",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/wishlist/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}", "wishlist", "{{phone_id}}"]
+						}
+					}
 				}
-			}
+			]
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "Get Cart",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/cart/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "cart", "{{user_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Add to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"quantity\": 1,\n  \"price\": 999,\n  \"phone\": {\n    \"id\": \"iphone-15-pro\",\n    \"brand\": \"Apple\",\n    \"model\": \"iPhone 15 Pro\",\n    \"price\": 999\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/cart/{{user_id}}/add",
+							"host": ["{{base_url}}"],
+							"path": ["api", "cart", "{{user_id}}", "add"]
+						}
+					}
+				},
+				{
+					"name": "Update Cart Item",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/cart/{{user_id}}/item/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "cart", "{{user_id}}", "item", "{{phone_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Remove from Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/cart/{{user_id}}/item/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "cart", "{{user_id}}", "item", "{{phone_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Clear Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/cart/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "cart", "{{user_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"user_1\",\n  \"items\": [\n    {\n      \"phoneId\": \"iphone-15-pro\",\n      \"phone\": {\n        \"id\": \"iphone-15-pro\",\n        \"brand\": \"Apple\",\n        \"model\": \"iPhone 15 Pro\"\n      },\n      \"quantity\": 1,\n      \"price\": 999\n    }\n  ],\n  \"shippingAddress\": {\n    \"city\": \"Tashkent\",\n    \"street\": \"Main Street 123\",\n    \"zipCode\": \"100000\"\n  },\n  \"paymentMethod\": \"card\",\n  \"total\": 999,\n  \"customerInfo\": {\n    \"name\": \"John Doe\",\n    \"phone\": \"+998901234567\",\n    \"email\": \"john@example.com\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/orders",
+							"host": ["{{base_url}}"],
+							"path": ["api", "orders"]
+						}
+					}
+				},
+				{
+					"name": "Get User Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/orders/user/{{user_id}}?page=1&limit=10&status=",
+							"host": ["{{base_url}}"],
+							"path": ["api", "orders", "user", "{{user_id}}"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"},
+								{"key": "status", "value": ""}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/orders/{{order_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "orders", "{{order_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Modals",
+			"item": [
+				{
+					"name": "Callback Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"+998901234567\",\n  \"name\": \"John Doe\",\n  \"preferredTime\": \"10:00-12:00\",\n  \"message\": \"I want to know about iPhone 15 Pro\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/modals/callback",
+							"host": ["{{base_url}}"],
+							"path": ["api", "modals", "callback"]
+						}
+					}
+				},
+				{
+					"name": "Low Price Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"competitorUrl\": \"https://example.com/phone\",\n  \"competitorPrice\": 899,\n  \"phone\": \"iPhone 15 Pro\",\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/modals/lowprice",
+							"host": ["{{base_url}}"],
+							"path": ["api", "modals", "lowprice"]
+						}
+					}
+				},
+				{
+					"name": "One-Click Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"phone\": \"+998901234567\",\n  \"name\": \"John Doe\",\n  \"address\": \"Main Street 123, Tashkent\",\n  \"paymentMethod\": \"cash\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/modals/oneclick",
+							"host": ["{{base_url}}"],
+							"path": ["api", "modals", "oneclick"]
+						}
+					}
+				},
+				{
+					"name": "Credit Application",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"name\": \"John Doe\",\n  \"phone\": \"+998901234567\",\n  \"email\": \"john@example.com\",\n  \"passport\": \"AB1234567\",\n  \"salary\": 2000,\n  \"creditAmount\": 999,\n  \"months\": 12\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/modals/credit",
+							"host": ["{{base_url}}"],
+							"path": ["api", "modals", "credit"]
+						}
+					}
+				},
+				{
+					"name": "Trade-In Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newPhoneId\": \"iphone-15-pro\",\n  \"oldPhoneBrand\": \"Apple\",\n  \"oldPhoneModel\": \"iPhone 12\",\n  \"oldPhoneCondition\": \"good\",\n  \"name\": \"John Doe\",\n  \"phone\": \"+998901234567\",\n  \"email\": \"john@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/modals/trade",
+							"host": ["{{base_url}}"],
+							"path": ["api", "modals", "trade"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Newsletter",
+			"item": [
+				{
+					"name": "Subscribe",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john@example.com\",\n  \"name\": \"John Doe\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/newsletter/subscribe",
+							"host": ["{{base_url}}"],
+							"path": ["api", "newsletter", "subscribe"]
+						}
+					}
+				},
+				{
+					"name": "Unsubscribe",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/newsletter/unsubscribe",
+							"host": ["{{base_url}}"],
+							"path": ["api", "newsletter", "unsubscribe"]
+						}
+					}
+				},
+				{
+					"name": "Get Subscribers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/newsletter/subscribers?status=",
+							"host": ["{{base_url}}"],
+							"path": ["api", "newsletter", "subscribers"],
+							"query": [
+								{"key": "status", "value": ""}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Alerts",
+			"item": [
+				{
+					"name": "Create Price Alert",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+998901234567\",\n  \"targetPrice\": 899\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/alerts/price",
+							"host": ["{{base_url}}"],
+							"path": ["api", "alerts", "price"]
+						}
+					}
+				},
+				{
+					"name": "Create Stock Alert",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+998901234567\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/alerts/stock",
+							"host": ["{{base_url}}"],
+							"path": ["api", "alerts", "stock"]
+						}
+					}
+				},
+				{
+					"name": "Get User Alerts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/alerts/user?email=john@example.com&phone=",
+							"host": ["{{base_url}}"],
+							"path": ["api", "alerts", "user"],
+							"query": [
+								{"key": "email", "value": "john@example.com"},
+								{"key": "phone", "value": ""}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Alert",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/alerts/{{alert_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "alerts", "{{alert_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/categories",
+							"host": ["{{base_url}}"],
+							"path": ["api", "categories"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Payments",
+			"item": [
+				{
+					"name": "Get Payment Methods",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/payments/methods",
+							"host": ["{{base_url}}"],
+							"path": ["api", "payments", "methods"]
+						}
+					}
+				},
+				{
+					"name": "Process Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": \"ORD-1000\",\n  \"amount\": 999,\n  \"method\": \"card\",\n  \"cardDetails\": {\n    \"number\": \"4111111111111111\",\n    \"expiry\": \"12/25\",\n    \"cvv\": \"123\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/payments/process",
+							"host": ["{{base_url}}"],
+							"path": ["api", "payments", "process"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Inventory",
+			"item": [
+				{
+					"name": "Get Inventory",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/inventory/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "inventory", "{{phone_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Inventory",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 50,\n  \"inStock\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/inventory/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "inventory", "{{phone_id}}"]
+						}
+					}
+				}
+			]
 		}
 	],
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "https://phone-backend-production.up.railway.app",
+			"value": "http://localhost:3001",
 			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "user_1",
+			"type": "string"
+		},
+		{
+			"key": "phone_id",
+			"value": "iphone-15-pro",
+			"type": "string"
+		},
+		{
+			"key": "order_id",
+			"value": "ORD-1000",
+			"type": "string"
+		},
+		{
+			"key": "alert_id",
+			"value": "price_alert_1234567890",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string",
+			"description": "JWT token from login/register response"
 		}
 	]
 }
