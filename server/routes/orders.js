@@ -50,8 +50,28 @@ router.post('/', (req, res) => {
   orders.set(orderId, order);
   
   res.status(201).json({
-    order,
-    message: 'Order created successfully'
+    success: true,
+    status: 'created',
+    data: {
+      order: {
+        ...order,
+        formattedTotal: total.toLocaleString('uz-UZ') + ' so\'m',
+        itemsCount: items.length
+      }
+    },
+    message: 'Buyurtma muvaffaqiyatli yaratildi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}/api/orders/${orderId}`,
+      tracking: `${req.protocol}://${req.get('host')}/api/tracking/${orderId}`,
+      userOrders: `${req.protocol}://${req.get('host')}/api/orders/user/${userId}`
+    },
+    meta: {
+      orderId: orderId,
+      status: order.status,
+      estimatedDelivery: order.estimatedDelivery
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -75,13 +95,30 @@ router.get('/user/:userId', (req, res) => {
   const paginatedOrders = userOrders.slice(startIndex, endIndex);
   
   res.json({
-    orders: paginatedOrders,
-    pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
-      total: userOrders.length,
-      pages: Math.ceil(userOrders.length / parseInt(limit))
-    }
+    success: true,
+    status: 'ok',
+    data: {
+      orders: paginatedOrders.map(order => ({
+        ...order,
+        formattedTotal: order.total.toLocaleString('uz-UZ') + ' so\'m',
+        itemsCount: order.items.length
+      })),
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: userOrders.length,
+        pages: Math.ceil(userOrders.length / parseInt(limit)),
+        hasNext: parseInt(page) < Math.ceil(userOrders.length / parseInt(limit)),
+        hasPrev: parseInt(page) > 1
+      }
+    },
+    message: `${paginatedOrders.length} ta buyurtma topildi`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      create: `${req.protocol}://${req.get('host')}/api/orders`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -91,10 +128,35 @@ router.get('/:orderId', (req, res) => {
   
   const order = orders.get(orderId);
   if (!order) {
-    return res.status(404).json({ error: 'Order not found' });
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'Order not found',
+      message: 'Buyurtma topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
-  res.json({ order });
+  res.json({
+    success: true,
+    status: 'ok',
+    data: {
+      order: {
+        ...order,
+        formattedTotal: order.total.toLocaleString('uz-UZ') + ' so\'m',
+        itemsCount: order.items.length
+      }
+    },
+    message: 'Buyurtma ma\'lumotlari yuklandi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      tracking: `${req.protocol}://${req.get('host')}/api/tracking/${orderId}`,
+      update: `${req.protocol}://${req.get('host')}/api/orders/${orderId}`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // Update order status

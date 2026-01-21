@@ -34,15 +34,17 @@
 		},
 		{
 			"key": "test_email",
-			"value": "test@example.com",
+			"value": "",
 			"type": "default",
-			"enabled": true
+			"enabled": true,
+			"description": "O'z email'ingizni kiriting"
 		},
 		{
 			"key": "test_phone",
-			"value": "+998901234567",
+			"value": "",
 			"type": "default",
-			"enabled": true
+			"enabled": true,
+			"description": "O'z telefon raqamingizni kiriting"
 		},
 		{
 			"key": "auth_token",

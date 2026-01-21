@@ -22,7 +22,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+998901234567\",\n  \"address\": {\n    \"city\": \"Tashkent\",\n    \"street\": \"Main Street 123\"\n  },\n  \"preferences\": {\n    \"notifications\": true,\n    \"newsletter\": false,\n    \"currency\": \"USD\",\n    \"language\": \"en\"\n  }\n}"
+							"raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"password\": \"\",\n  \"phone\": \"\",\n  \"address\": {\n    \"city\": \"\",\n    \"street\": \"\"\n  },\n  \"preferences\": {\n    \"notifications\": true,\n    \"newsletter\": false,\n    \"currency\": \"USD\",\n    \"language\": \"en\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{base_url}}/api/auth/register",
@@ -44,7 +49,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+							"raw": "{\n  \"email\": \"\",\n  \"password\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{base_url}}/api/auth/login",
@@ -107,6 +117,261 @@
 							"path": ["api", "auth", "logout"]
 						},
 						"description": "Logout (client-side token removal)"
+					}
+				}
+			]
+		},
+		{
+			"name": "Phone Verification",
+			"item": [
+				{
+					"name": "Send OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/verification/send-otp",
+							"host": ["{{base_url}}"],
+							"path": ["api", "verification", "send-otp"]
+						},
+						"description": "Send OTP code to phone number. Format: +998901234567",
+						"response": [
+							{
+								"name": "Success Response",
+								"originalRequest": {
+									"method": "POST",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"body": {
+										"mode": "raw",
+										"raw": "{\n  \"phone\": \"+998901234567\"\n}"
+									},
+									"url": {
+										"raw": "{{base_url}}/api/verification/send-otp",
+										"host": ["{{base_url}}"],
+										"path": ["api", "verification", "send-otp"]
+									}
+								},
+								"status": "OK",
+								"code": 200,
+								"_postman_previewlanguage": "json",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"cookie": [],
+								"body": "{\n  \"success\": true,\n  \"status\": \"sent\",\n  \"data\": {\n    \"phone\": \"+998901234567\",\n    \"expiresIn\": \"5 minutes\",\n    \"message\": \"OTP code sent successfully\"\n  },\n  \"message\": \"Tasdiqlash kodi telefon raqamingizga yuborildi. Kod 5 daqiqa davomida amal qiladi.\",\n  \"links\": {\n    \"verify\": \"http://localhost:3001/api/verification/verify-otp\",\n    \"resend\": \"http://localhost:3001/api/verification/send-otp\"\n  },\n  \"meta\": {\n    \"note\": \"In development mode, check console for OTP code\",\n    \"expiresAt\": \"2024-01-01T12:05:00.000Z\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
+							}
+						],
+						"event": [
+							{
+								"listen": "test",
+								"script": {
+									"exec": [
+										"pm.test(\"Status code is 200\", function () {",
+										"    pm.response.to.have.status(200);",
+										"});",
+										"",
+										"pm.test(\"Response has success field\", function () {",
+										"    const jsonData = pm.response.json();",
+										"    pm.expect(jsonData).to.have.property('success');",
+										"    pm.expect(jsonData.success).to.eql(true);",
+										"});",
+										"",
+										"pm.test(\"OTP sent successfully\", function () {",
+										"    const jsonData = pm.response.json();",
+										"    pm.expect(jsonData.status).to.eql('sent');",
+										"    pm.expect(jsonData.data).to.have.property('phone');",
+										"});",
+										"",
+										"// Save phone to environment",
+										"if (pm.response.code === 200) {",
+										"    const jsonData = pm.response.json();",
+										"    if (jsonData.data && jsonData.data.phone) {",
+										"        pm.environment.set('test_phone', jsonData.data.phone);",
+										"        console.log('✅ Phone saved:', jsonData.data.phone);",
+										"        console.log('📱 Check console for OTP code (development mode)');",
+										"    }",
+										"}"
+									],
+									"type": "text/javascript"
+								}
+							}
+						]
+					}
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"\",\n  \"code\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/verification/verify-otp",
+							"host": ["{{base_url}}"],
+							"path": ["api", "verification", "verify-otp"]
+						},
+						"description": "Verify OTP code sent to phone number",
+						"response": [
+							{
+								"name": "Success Response",
+								"originalRequest": {
+									"method": "POST",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"body": {
+										"mode": "raw",
+										"raw": "{\n  \"phone\": \"+998901234567\",\n  \"code\": \"123456\"\n}"
+									},
+									"url": {
+										"raw": "{{base_url}}/api/verification/verify-otp",
+										"host": ["{{base_url}}"],
+										"path": ["api", "verification", "verify-otp"]
+									}
+								},
+								"status": "OK",
+								"code": 200,
+								"_postman_previewlanguage": "json",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"cookie": [],
+								"body": "{\n  \"success\": true,\n  \"status\": \"verified\",\n  \"data\": {\n    \"phone\": \"+998901234567\",\n    \"verified\": true,\n    \"verifiedAt\": \"2024-01-01T12:00:00.000Z\"\n  },\n  \"message\": \"Telefon raqam muvaffaqiyatli tasdiqlandi\",\n  \"links\": {\n    \"register\": \"http://localhost:3001/api/auth/register\",\n    \"login\": \"http://localhost:3001/api/auth/login\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
+							}
+						],
+						"event": [
+							{
+								"listen": "test",
+								"script": {
+									"exec": [
+										"pm.test(\"Status code is 200\", function () {",
+										"    pm.response.to.have.status(200);",
+										"});",
+										"",
+										"pm.test(\"OTP verified successfully\", function () {",
+										"    const jsonData = pm.response.json();",
+										"    pm.expect(jsonData.success).to.eql(true);",
+										"    pm.expect(jsonData.status).to.eql('verified');",
+										"    pm.expect(jsonData.data.verified).to.eql(true);",
+										"});",
+										"",
+										"// Log verification result",
+										"if (pm.response.code === 200) {",
+										"    const jsonData = pm.response.json();",
+										"    console.log('✅ Phone verified:', jsonData.data.phone);",
+										"    console.log('✅ Verified at:', jsonData.data.verifiedAt);",
+										"}"
+									],
+									"type": "text/javascript"
+								}
+							}
+						]
+					}
+				},
+				{
+					"name": "Check Verification Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/verification/status/{{test_phone}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "verification", "status", "{{test_phone}}"]
+						},
+						"description": "Check if phone number is verified",
+						"response": [
+							{
+								"name": "Success Response",
+								"originalRequest": {
+									"method": "GET",
+									"header": [],
+									"url": {
+										"raw": "{{base_url}}/api/verification/status/+998901234567",
+										"host": ["{{base_url}}"],
+										"path": ["api", "verification", "status", "+998901234567"]
+									}
+								},
+								"status": "OK",
+								"code": 200,
+								"_postman_previewlanguage": "json",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"cookie": [],
+								"body": "{\n  \"success\": true,\n  \"status\": \"ok\",\n  \"data\": {\n    \"phone\": \"+998901234567\",\n    \"verified\": true,\n    \"hasOTP\": true,\n    \"expiresAt\": \"2024-01-01T12:05:00.000Z\",\n    \"attempts\": 0,\n    \"createdAt\": \"2024-01-01T12:00:00.000Z\"\n  },\n  \"message\": \"Telefon raqam tasdiqlangan\",\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
+							}
+						],
+						"event": [
+							{
+								"listen": "test",
+								"script": {
+									"exec": [
+										"pm.test(\"Status code is 200\", function () {",
+										"    pm.response.to.have.status(200);",
+										"});",
+										"",
+										"pm.test(\"Response has verification status\", function () {",
+										"    const jsonData = pm.response.json();",
+										"    pm.expect(jsonData).to.have.property('data');",
+										"    pm.expect(jsonData.data).to.have.property('phone');",
+										"    pm.expect(jsonData.data).to.have.property('verified');",
+										"});",
+										"",
+										"// Log verification status",
+										"if (pm.response.code === 200) {",
+										"    const jsonData = pm.response.json();",
+										"    console.log('📱 Phone:', jsonData.data.phone);",
+										"    console.log('✅ Verified:', jsonData.data.verified);",
+										"    console.log('📅 Expires at:', jsonData.data.expiresAt);",
+										"}"
+									],
+									"type": "text/javascript"
+								}
+							}
+						]
 					}
 				}
 			]
@@ -329,7 +594,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+998901234567\",\n  \"address\": {\n    \"city\": \"Tashkent\",\n    \"street\": \"Main Street 123\"\n  },\n  \"preferences\": {\n    \"notifications\": true,\n    \"newsletter\": false,\n    \"currency\": \"USD\",\n    \"language\": \"en\"\n  }\n}"
+							"raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"password\": \"\",\n  \"phone\": \"\",\n  \"address\": {\n    \"city\": \"\",\n    \"street\": \"\"\n  },\n  \"preferences\": {\n    \"notifications\": true,\n    \"newsletter\": false,\n    \"currency\": \"USD\",\n    \"language\": \"en\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{base_url}}/api/users/register",
@@ -362,7 +632,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"John Updated\",\n  \"phone\": \"+998901234568\",\n  \"address\": {\n    \"city\": \"Samarkand\",\n    \"street\": \"New Street 456\"\n  }\n}"
+							"raw": "{\n  \"name\": \"\",\n  \"phone\": \"\",\n  \"address\": {\n    \"city\": \"\",\n    \"street\": \"\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/users/{{user_id}}",
@@ -533,7 +803,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"userId\": \"user_1\",\n  \"items\": [\n    {\n      \"phoneId\": \"iphone-15-pro\",\n      \"phone\": {\n        \"id\": \"iphone-15-pro\",\n        \"brand\": \"Apple\",\n        \"model\": \"iPhone 15 Pro\"\n      },\n      \"quantity\": 1,\n      \"price\": 999\n    }\n  ],\n  \"shippingAddress\": {\n    \"city\": \"Tashkent\",\n    \"street\": \"Main Street 123\",\n    \"zipCode\": \"100000\"\n  },\n  \"paymentMethod\": \"card\",\n  \"total\": 999,\n  \"customerInfo\": {\n    \"name\": \"John Doe\",\n    \"phone\": \"+998901234567\",\n    \"email\": \"john@example.com\"\n  }\n}"
+							"raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"items\": [\n    {\n      \"phoneId\": \"{{phone_id}}\",\n      \"phone\": {\n        \"id\": \"{{phone_id}}\",\n        \"brand\": \"Apple\",\n        \"model\": \"iPhone 15 Pro\"\n      },\n      \"quantity\": 1,\n      \"price\": 999\n    }\n  ],\n  \"shippingAddress\": {\n    \"city\": \"\",\n    \"street\": \"\",\n    \"zipCode\": \"\"\n  },\n  \"paymentMethod\": \"card\",\n  \"total\": 999,\n  \"customerInfo\": {\n    \"name\": \"\",\n    \"phone\": \"\",\n    \"email\": \"\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/orders",
@@ -588,7 +858,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"phone\": \"+998901234567\",\n  \"name\": \"John Doe\",\n  \"preferredTime\": \"10:00-12:00\",\n  \"message\": \"I want to know about iPhone 15 Pro\"\n}"
+							"raw": "{\n  \"phone\": \"\",\n  \"name\": \"\",\n  \"preferredTime\": \"\",\n  \"message\": \"\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/modals/callback",
@@ -609,7 +879,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"competitorUrl\": \"https://example.com/phone\",\n  \"competitorPrice\": 899,\n  \"phone\": \"iPhone 15 Pro\",\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\"\n}"
+							"raw": "{\n  \"phoneId\": \"{{phone_id}}\",\n  \"competitorUrl\": \"\",\n  \"competitorPrice\": 0,\n  \"phone\": \"\",\n  \"name\": \"\",\n  \"email\": \"\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/modals/lowprice",
@@ -630,7 +900,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"phone\": \"+998901234567\",\n  \"name\": \"John Doe\",\n  \"address\": \"Main Street 123, Tashkent\",\n  \"paymentMethod\": \"cash\"\n}"
+							"raw": "{\n  \"phoneId\": \"{{phone_id}}\",\n  \"phone\": \"\",\n  \"name\": \"\",\n  \"address\": \"\",\n  \"paymentMethod\": \"cash\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/modals/oneclick",
@@ -651,7 +921,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"name\": \"John Doe\",\n  \"phone\": \"+998901234567\",\n  \"email\": \"john@example.com\",\n  \"passport\": \"AB1234567\",\n  \"salary\": 2000,\n  \"creditAmount\": 999,\n  \"months\": 12\n}"
+							"raw": "{\n  \"phoneId\": \"{{phone_id}}\",\n  \"name\": \"\",\n  \"phone\": \"\",\n  \"email\": \"\",\n  \"passport\": \"\",\n  \"salary\": 0,\n  \"creditAmount\": 0,\n  \"months\": 12\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/modals/credit",
@@ -672,7 +942,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"newPhoneId\": \"iphone-15-pro\",\n  \"oldPhoneBrand\": \"Apple\",\n  \"oldPhoneModel\": \"iPhone 12\",\n  \"oldPhoneCondition\": \"good\",\n  \"name\": \"John Doe\",\n  \"phone\": \"+998901234567\",\n  \"email\": \"john@example.com\"\n}"
+							"raw": "{\n  \"newPhoneId\": \"{{phone_id}}\",\n  \"oldPhoneBrand\": \"\",\n  \"oldPhoneModel\": \"\",\n  \"oldPhoneCondition\": \"good\",\n  \"name\": \"\",\n  \"phone\": \"\",\n  \"email\": \"\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/modals/trade",
@@ -698,7 +968,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"john@example.com\",\n  \"name\": \"John Doe\"\n}"
+							"raw": "{\n  \"email\": \"\",\n  \"name\": \"\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/newsletter/subscribe",
@@ -719,7 +989,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"john@example.com\"\n}"
+							"raw": "{\n  \"email\": \"\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/newsletter/unsubscribe",
@@ -760,7 +1030,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+998901234567\",\n  \"targetPrice\": 899\n}"
+							"raw": "{\n  \"phoneId\": \"{{phone_id}}\",\n  \"email\": \"\",\n  \"phone\": \"\",\n  \"targetPrice\": 0\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/alerts/price",
@@ -781,7 +1051,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"phoneId\": \"iphone-15-pro\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+998901234567\"\n}"
+							"raw": "{\n  \"phoneId\": \"{{phone_id}}\",\n  \"email\": \"\",\n  \"phone\": \"\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/alerts/stock",
@@ -796,11 +1066,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/alerts/user?email=john@example.com&phone=",
+							"raw": "{{base_url}}/api/alerts/user?email=&phone=",
 							"host": ["{{base_url}}"],
 							"path": ["api", "alerts", "user"],
 							"query": [
-								{"key": "email", "value": "john@example.com"},
+								{"key": "email", "value": ""},
 								{"key": "phone", "value": ""}
 							]
 						}

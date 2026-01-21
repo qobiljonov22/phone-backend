@@ -12,6 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Import routes
+import authRoutes from './routes/auth.js';
+import verificationRoutes from './routes/verification.js';
 import trackingRoutes from './routes/tracking.js';
 import paymentsRoutes from './routes/payments.js';
 import adminRoutes from './routes/admin.js';
@@ -216,6 +218,18 @@ app.get('/api', (req, res) => {
       inventory: {
         get: 'GET /api/inventory/:phoneId',
         update: 'PUT /api/inventory/:phoneId'
+      },
+      auth: {
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login',
+        me: 'GET /api/auth/me',
+        refresh: 'POST /api/auth/refresh',
+        logout: 'POST /api/auth/logout'
+      },
+      verification: {
+        sendOTP: 'POST /api/verification/send-otp',
+        verifyOTP: 'POST /api/verification/verify-otp',
+        status: 'GET /api/verification/status/:phone'
       },
       users: 'GET /api/users',
       cart: 'GET /api/cart/:userId',
@@ -912,6 +926,12 @@ app.post('/api/broadcast', (req, res) => {
 });
 
 // Register all route modules
+// Authentication routes (no auth required)
+app.use('/api/auth', authRoutes);
+// Phone verification routes
+app.use('/api/verification', verificationRoutes);
+
+// Other routes
 app.use('/api/tracking', trackingRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/admin', adminRoutes);
@@ -948,31 +968,52 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler - Check if it's an HTML request or API request
+// 404 handler - Always return JSON response
 app.use((req, res) => {
-  // If request accepts HTML, serve 404.html page
-  const acceptsHtml = req.accepts('html');
-  const isApiRequest = req.path.startsWith('/api');
-  
-  if (acceptsHtml && !isApiRequest) {
-    // Serve 404 HTML page for non-API requests
-    res.status(404).sendFile(path.join(__dirname, '../public/404.html'));
-  } else {
-    // Return JSON for API requests
-    res.status(404).json({
-      success: false,
-      status: 'not_found',
-      error: 'Not found',
-      message: `Route ${req.method} ${req.path} not found`,
-      links: {
+  res.status(404).json({
+    success: false,
+    status: 'not_found',
+    error: 'Not found',
+    message: `Route ${req.method} ${req.path} not found`,
+    data: {
+      requestedPath: req.path,
+      requestedMethod: req.method,
+      availableEndpoints: {
         api: `${req.protocol}://${req.get('host')}/api`,
-        docs: `${req.protocol}://${req.get('host')}/demo`,
-        home: `${req.protocol}://${req.get('host')}/`
-      },
-      timestamp: new Date().toISOString(),
-      version: '1.0.0'
-    });
-  }
+        health: `${req.protocol}://${req.get('host')}/api/health`,
+        phones: `${req.protocol}://${req.get('host')}/api/phones`,
+        search: `${req.protocol}://${req.get('host')}/api/search`,
+        featured: `${req.protocol}://${req.get('host')}/api/featured`,
+        brands: `${req.protocol}://${req.get('host')}/api/brands`,
+        users: `${req.protocol}://${req.get('host')}/api/users`,
+        cart: `${req.protocol}://${req.get('host')}/api/cart`,
+        orders: `${req.protocol}://${req.get('host')}/api/orders`,
+        categories: `${req.protocol}://${req.get('host')}/api/categories`,
+        modals: {
+          callback: `${req.protocol}://${req.get('host')}/api/modals/callback`,
+          lowprice: `${req.protocol}://${req.get('host')}/api/modals/lowprice`,
+          oneclick: `${req.protocol}://${req.get('host')}/api/modals/oneclick`,
+          credit: `${req.protocol}://${req.get('host')}/api/modals/credit`,
+          trade: `${req.protocol}://${req.get('host')}/api/modals/trade`
+        },
+        newsletter: `${req.protocol}://${req.get('host')}/api/newsletter`,
+        alerts: `${req.protocol}://${req.get('host')}/api/alerts`
+      }
+    },
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      api: `${req.protocol}://${req.get('host')}/api`,
+      docs: `${req.protocol}://${req.get('host')}/demo`,
+      home: `${req.protocol}://${req.get('host')}/`,
+      health: `${req.protocol}://${req.get('host')}/api/health`
+    },
+    meta: {
+      suggestion: 'Check /api endpoint for available routes',
+      timestamp: new Date().toISOString()
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // Start server

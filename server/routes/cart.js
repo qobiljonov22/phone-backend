@@ -8,11 +8,25 @@ let carts = new Map();
 // Get cart by user ID
 router.get('/:userId', (req, res) => {
   const { userId } = req.params;
-  const cart = carts.get(userId) || { items: [], total: 0, itemCount: 0 };
+  const cart = carts.get(userId) || { items: [], total: 0, itemCount: 0, updatedAt: new Date() };
   
   res.json({
-    cart,
-    message: 'Cart retrieved successfully'
+    success: true,
+    status: 'ok',
+    data: {
+      cart: {
+        ...cart,
+        isEmpty: cart.items.length === 0,
+        formattedTotal: cart.total.toLocaleString('uz-UZ') + ' so\'m'
+      }
+    },
+    message: cart.items.length === 0 ? 'Savatcha bo\'sh' : `${cart.itemCount} ta mahsulot savatchada`,
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      checkout: cart.items.length > 0 ? `${req.protocol}://${req.get('host')}/api/orders` : null
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -52,9 +66,25 @@ router.post('/:userId/add', (req, res) => {
   
   carts.set(userId, cart);
   
-  res.json({
-    cart,
-    message: 'Item added to cart successfully'
+  const addedItem = cart.items.find(item => item.phoneId === phoneId);
+  
+  res.status(201).json({
+    success: true,
+    status: 'added',
+    data: {
+      cart: {
+        ...cart,
+        formattedTotal: cart.total.toLocaleString('uz-UZ') + ' so\'m'
+      },
+      addedItem: addedItem
+    },
+    message: 'Mahsulot savatga qo\'shildi',
+    links: {
+      cart: `${req.protocol}://${req.get('host')}/api/cart/${userId}`,
+      checkout: `${req.protocol}://${req.get('host')}/api/orders`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -94,8 +124,21 @@ router.put('/:userId/item/:phoneId', (req, res) => {
   carts.set(userId, cart);
   
   res.json({
-    cart,
-    message: 'Cart updated successfully'
+    success: true,
+    status: 'updated',
+    data: {
+      cart: {
+        ...cart,
+        formattedTotal: cart.total.toLocaleString('uz-UZ') + ' so\'m'
+      }
+    },
+    message: 'Savatcha yangilandi',
+    links: {
+      self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+      cart: `${req.protocol}://${req.get('host')}/api/cart/${userId}`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -123,8 +166,21 @@ router.delete('/:userId/item/:phoneId', (req, res) => {
   carts.set(userId, cart);
   
   res.json({
-    cart,
-    message: 'Item removed from cart successfully'
+    success: true,
+    status: 'removed',
+    data: {
+      cart: {
+        ...cart,
+        formattedTotal: cart.total.toLocaleString('uz-UZ') + ' so\'m',
+        isEmpty: cart.items.length === 0
+      }
+    },
+    message: 'Mahsulot savatdan olib tashlandi',
+    links: {
+      cart: `${req.protocol}://${req.get('host')}/api/cart/${userId}`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
@@ -132,10 +188,22 @@ router.delete('/:userId/item/:phoneId', (req, res) => {
 router.delete('/:userId', (req, res) => {
   const { userId } = req.params;
   
-  carts.set(userId, { items: [], total: 0, itemCount: 0, updatedAt: new Date() });
+  const clearedCart = { items: [], total: 0, itemCount: 0, updatedAt: new Date() };
+  carts.set(userId, clearedCart);
   
   res.json({
-    message: 'Cart cleared successfully'
+    success: true,
+    status: 'cleared',
+    data: {
+      cart: clearedCart
+    },
+    message: 'Savatcha tozalandi',
+    links: {
+      cart: `${req.protocol}://${req.get('host')}/api/cart/${userId}`,
+      phones: `${req.protocol}://${req.get('host')}/api/phones`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
