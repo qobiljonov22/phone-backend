@@ -1,5 +1,5 @@
 // User management functionality
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 // In-memory users storage (in production, use database with proper authentication)
@@ -235,4 +235,4 @@ router.get('/', (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;
