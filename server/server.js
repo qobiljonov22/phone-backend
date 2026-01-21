@@ -274,12 +274,31 @@ app.get('/api', (req, res) => {
       },
       broadcast: 'POST /api/broadcast'
     },
-    websocket: {
-      url: `ws://localhost:${PORT}`,
-      status: 'active',
-      connected: clients.size
+      websocket: {
+        url: `ws://${req.get('host')}`,
+        status: 'active',
+        connected: clients.size
+      },
+      server: {
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT,
+        uptime: Math.floor(process.uptime())
+      },
+      statistics: {
+        totalEndpoints: 50,
+        totalPhones: Object.keys(phonesData.phones || {}).length,
+        activeConnections: clients.size
+      }
     },
-    timestamp: new Date().toISOString()
+    message: 'API is running successfully',
+    links: {
+      self: baseUrl,
+      health: `${baseUrl}/health`,
+      docs: `${req.protocol}://${req.get('host')}/demo`,
+      websocket: `ws://${req.get('host')}`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
