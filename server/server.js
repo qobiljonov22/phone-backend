@@ -66,6 +66,9 @@ dotenv.config();
 // No JSON file needed - all data goes to database
 import { storage } from './utils/storage.js';
 
+// Check if running in Vercel/serverless environment
+const isVercelEnv = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
