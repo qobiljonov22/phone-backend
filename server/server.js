@@ -62,48 +62,9 @@ import { validatePhone, validatePagination } from './middleware/validator.js';
 
 dotenv.config();
 
-// Load phones database
-// In Vercel/serverless, use /tmp directory for file writes
-const isVercelEnv = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-const phonesFile = isVercelEnv ? '/tmp/phones_database.json' : 'phones_database.json';
-let phonesData = { phones: {} };
-
-// Load phones from file
-const loadPhones = () => {
-  try {
-    if (fs.existsSync(phonesFile)) {
-      phonesData = JSON.parse(fs.readFileSync(phonesFile, 'utf8'));
-    } else {
-      // Try to load from root if /tmp doesn't exist (for local dev)
-      const rootFile = 'phones_database.json';
-      if (fs.existsSync(rootFile) && !isVercelEnv) {
-        phonesData = JSON.parse(fs.readFileSync(rootFile, 'utf8'));
-      }
-    }
-  } catch (error) {
-    console.error('Error loading phones:', error);
-    phonesData = { phones: {} };
-  }
-};
-
-// Save phones to file
-const savePhones = () => {
-  try {
-    // Ensure /tmp directory exists in Vercel
-    if (isVercelEnv) {
-      if (!fs.existsSync('/tmp')) {
-        fs.mkdirSync('/tmp', { recursive: true });
-      }
-    }
-    fs.writeFileSync(phonesFile, JSON.stringify(phonesData, null, 2));
-  } catch (error) {
-    console.error('Error saving phones:', error);
-    // In serverless, file writes may fail - use in-memory only
-  }
-};
-
-// Initialize: load phones on startup
-loadPhones();
+// Phones will be stored in database using storage utility
+// No JSON file needed - all data goes to database
+import { storage } from './utils/storage.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -236,7 +197,7 @@ app.get('/demo', (req, res) => {
 });
 
 // API info endpoint
-app.get('/api', (req, res) => {
+app.get('/api', async (req, res) => {
   const baseUrl = `${req.protocol}://${req.get('host')}/api`;
   
   res.json({
@@ -353,7 +314,7 @@ app.get('/api', (req, res) => {
       },
       statistics: {
         totalEndpoints: 50,
-        totalPhones: Object.keys(phonesData.phones || {}).length,
+        totalPhones: await storage.count('phones'),
         activeConnections: clients.size
       }
     },
@@ -370,8 +331,8 @@ app.get('/api', (req, res) => {
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  const phonesCount = Object.keys(phonesData.phones || {}).length;
+app.get('/api/health', async (req, res) => {
+  const phonesCount = await storage.count('phones');
   const uptimeSeconds = Math.floor(process.uptime());
   const uptimeMinutes = Math.floor(uptimeSeconds / 60);
   const uptimeHours = Math.floor(uptimeMinutes / 60);
@@ -433,9 +394,9 @@ const formatPhoneForUI = (phone) => {
 };
 
 // Phones API
-app.get('/api/phones', validatePagination, (req, res) => {
+app.get('/api/phones', validatePagination, async (req, res) => {
   const { page = 1, limit = 10, brand, minPrice, maxPrice, sort } = req.query;
-  let phones = Object.values(phonesData.phones || {});
+  let phones = await storage.find('phones');
   
   // Filter by brand
   if (brand) {
@@ -513,9 +474,9 @@ app.get('/api/phones', validatePagination, (req, res) => {
   });
 });
 
-app.get('/api/phones/:id', (req, res) => {
+app.get('/api/phones/:id', async (req, res) => {
   const { id } = req.params;
-  const phone = phonesData.phones?.[id];
+  const phone = await storage.findOne('phones', { id });
   
   if (!phone) {
     return res.status(404).json({ 
@@ -552,21 +513,21 @@ app.get('/api/phones/:id', (req, res) => {
   });
 });
 
-app.post('/api/phones', validatePhone, (req, res) => {
+app.post('/api/phones', validatePhone, async (req, res) => {
   const phone = req.body;
   const id = phone.id || `phone-${Date.now()}`;
   
-  phonesData.phones[id] = {
+  const newPhoneData = {
     ...phone,
     id,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
   
-  savePhones();
-  broadcast({ type: 'phone_created', phone: phonesData.phones[id] });
+  await storage.insert('phones', newPhoneData);
+  broadcast({ type: 'phone_created', phone: newPhoneData });
   
-  const newPhone = formatPhoneForUI(phonesData.phones[id]);
+  const newPhone = formatPhoneForUI(newPhoneData);
   
   res.status(201).json({
     success: true,
@@ -579,18 +540,19 @@ app.post('/api/phones', validatePhone, (req, res) => {
     },
     meta: {
       id: id,
-      createdAt: phonesData.phones[id].createdAt
+      createdAt: newPhoneData.createdAt
     },
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   });
 });
 
-app.put('/api/phones/:id', validatePhone, (req, res) => {
+app.put('/api/phones/:id', validatePhone, async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
   
-  if (!phonesData.phones?.[id]) {
+  const existingPhone = await storage.findOne('phones', { id });
+  if (!existingPhone) {
     return res.status(404).json({
       success: false,
       status: 'not_found',
@@ -601,17 +563,17 @@ app.put('/api/phones/:id', validatePhone, (req, res) => {
     });
   }
   
-  phonesData.phones[id] = {
-    ...phonesData.phones[id],
+  const updatedPhoneData = {
+    ...existingPhone,
     ...updates,
     id,
     updatedAt: new Date().toISOString()
   };
   
-  savePhones();
-  broadcast({ type: 'phone_updated', phone: phonesData.phones[id] });
+  await storage.update('phones', { id }, updatedPhoneData);
+  broadcast({ type: 'phone_updated', phone: updatedPhoneData });
   
-  const updatedPhone = formatPhoneForUI(phonesData.phones[id]);
+  const updatedPhone = formatPhoneForUI(updatedPhoneData);
   
   res.json({
     success: true,
@@ -624,7 +586,7 @@ app.put('/api/phones/:id', validatePhone, (req, res) => {
     },
     meta: {
       id: id,
-      updatedAt: phonesData.phones[id].updatedAt,
+      updatedAt: updatedPhoneData.updatedAt,
       changes: Object.keys(req.body)
     },
     timestamp: new Date().toISOString(),
@@ -632,10 +594,11 @@ app.put('/api/phones/:id', validatePhone, (req, res) => {
   });
 });
 
-app.delete('/api/phones/:id', (req, res) => {
+app.delete('/api/phones/:id', async (req, res) => {
   const { id } = req.params;
   
-  if (!phonesData.phones?.[id]) {
+  const deletedPhone = await storage.findOne('phones', { id });
+  if (!deletedPhone) {
     return res.status(404).json({
       success: false,
       status: 'not_found',
@@ -646,9 +609,7 @@ app.delete('/api/phones/:id', (req, res) => {
     });
   }
   
-  const deletedPhone = phonesData.phones[id];
-  delete phonesData.phones[id];
-  savePhones();
+  await storage.delete('phones', { id });
   broadcast({ type: 'phone_deleted', id });
   
   res.json({ 
@@ -671,7 +632,7 @@ app.delete('/api/phones/:id', (req, res) => {
 });
 
 // Bulk operations
-app.post('/api/phones/bulk', (req, res) => {
+app.post('/api/phones/bulk', async (req, res) => {
   const { phones } = req.body;
   
   if (!Array.isArray(phones) || phones.length === 0) {
@@ -681,22 +642,22 @@ app.post('/api/phones/bulk', (req, res) => {
   const created = [];
   const errors = [];
   
-  phones.forEach((phone, index) => {
+  for (const phone of phones) {
     try {
-      const id = phone.id || `phone-${Date.now()}-${index}`;
-      phonesData.phones[id] = {
+      const id = phone.id || `phone-${Date.now()}-${Math.random()}`;
+      const phoneData = {
         ...phone,
         id,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      created.push(phonesData.phones[id]);
+      await storage.insert('phones', phoneData);
+      created.push(phoneData);
     } catch (error) {
-      errors.push({ index, error: error.message });
+      errors.push({ phone, error: error.message });
     }
-  });
+  }
   
-  savePhones();
   broadcast({ type: 'phones_bulk_created', count: created.length });
   
   res.status(201).json({
@@ -706,7 +667,7 @@ app.post('/api/phones/bulk', (req, res) => {
   });
 });
 
-app.delete('/api/phones/bulk', (req, res) => {
+app.delete('/api/phones/bulk', async (req, res) => {
   const { ids } = req.body;
   
   if (!Array.isArray(ids) || ids.length === 0) {
@@ -716,16 +677,16 @@ app.delete('/api/phones/bulk', (req, res) => {
   const deleted = [];
   const notFound = [];
   
-  ids.forEach(id => {
-    if (phonesData.phones?.[id]) {
-      delete phonesData.phones[id];
+  for (const id of ids) {
+    const phone = await storage.findOne('phones', { id });
+    if (phone) {
+      await storage.delete('phones', { id });
       deleted.push(id);
     } else {
       notFound.push(id);
     }
-  });
+  }
   
-  savePhones();
   broadcast({ type: 'phones_bulk_deleted', count: deleted.length });
   
   res.json({
@@ -736,9 +697,9 @@ app.delete('/api/phones/bulk', (req, res) => {
 });
 
 // Inventory management
-app.get('/api/inventory/:phoneId', (req, res) => {
+app.get('/api/inventory/:phoneId', async (req, res) => {
   const { phoneId } = req.params;
-  const phone = phonesData.phones?.[phoneId];
+  const phone = await storage.findOne('phones', { id: phoneId });
   
   if (!phone) {
     return res.status(404).json({ error: 'Phone not found' });
@@ -754,29 +715,32 @@ app.get('/api/inventory/:phoneId', (req, res) => {
   });
 });
 
-app.put('/api/inventory/:phoneId', (req, res) => {
+app.put('/api/inventory/:phoneId', async (req, res) => {
   const { phoneId } = req.params;
   const { quantity, inStock, reserved } = req.body;
   
-  if (!phonesData.phones?.[phoneId]) {
+  const phone = await storage.findOne('phones', { id: phoneId });
+  if (!phone) {
     return res.status(404).json({ error: 'Phone not found' });
   }
   
-  const phone = phonesData.phones[phoneId];
+  const updates = {};
+  if (quantity !== undefined) updates.quantity = quantity;
+  if (inStock !== undefined) updates.inStock = inStock;
+  if (reserved !== undefined) updates.reserved = reserved;
+  updates.updatedAt = new Date().toISOString();
   
-  if (quantity !== undefined) phone.quantity = quantity;
-  if (inStock !== undefined) phone.inStock = inStock;
-  if (reserved !== undefined) phone.reserved = reserved;
-  phone.updatedAt = new Date().toISOString();
+  await storage.update('phones', { id: phoneId }, updates);
   
-  savePhones();
+  const updatedPhone = await storage.findOne('phones', { id: phoneId });
+  
   broadcast({ 
     type: 'inventory_updated', 
     phoneId, 
     inventory: {
-      quantity: phone.quantity,
-      inStock: phone.inStock,
-      available: (phone.quantity || 0) - (phone.reserved || 0)
+      quantity: updatedPhone.quantity,
+      inStock: updatedPhone.inStock,
+      available: (updatedPhone.quantity || 0) - (updatedPhone.reserved || 0)
     }
   });
   
@@ -784,10 +748,10 @@ app.put('/api/inventory/:phoneId', (req, res) => {
     message: 'Inventory updated successfully',
     phoneId,
     inventory: {
-      quantity: phone.quantity,
-      inStock: phone.inStock,
-      reserved: phone.reserved,
-      available: (phone.quantity || 0) - (phone.reserved || 0)
+      quantity: updatedPhone.quantity,
+      inStock: updatedPhone.inStock,
+      reserved: updatedPhone.reserved,
+      available: (updatedPhone.quantity || 0) - (updatedPhone.reserved || 0)
     }
   });
 });
@@ -846,9 +810,9 @@ app.post('/api/chat/rooms', (req, res) => {
 });
 
 // Search endpoint
-app.get('/api/search', (req, res) => {
+app.get('/api/search', async (req, res) => {
   const { q, category, brand, minPrice, maxPrice } = req.query;
-  let phones = Object.values(phonesData.phones || {});
+  let phones = await storage.find('phones');
   
   if (q) {
     const query = q.toLowerCase();
@@ -909,8 +873,8 @@ app.get('/api/search', (req, res) => {
 });
 
 // Featured phones
-app.get('/api/featured', (req, res) => {
-  const phones = Object.values(phonesData.phones || {});
+app.get('/api/featured', async (req, res) => {
+  const phones = await storage.find('phones');
   const featured = phones
     .filter(p => p.rating >= 4.5 || p.tags?.includes('bestseller') || p.tags?.includes('new'))
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
@@ -943,8 +907,8 @@ app.get('/api/featured', (req, res) => {
 });
 
 // Brands endpoint
-app.get('/api/brands', (req, res) => {
-  const phones = Object.values(phonesData.phones || {});
+app.get('/api/brands', async (req, res) => {
+  const phones = await storage.find('phones');
   const brands = [...new Set(phones.map(p => p.brand).filter(Boolean))].sort();
   
   // Count phones per brand

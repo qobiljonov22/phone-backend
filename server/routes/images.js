@@ -2,46 +2,19 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { storage } from '../utils/storage.js';
 
 const router = express.Router();
 
-// Load phones database
-// In Vercel/serverless, use /tmp directory for file writes
-const isVercelEnv = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-const phonesFile = isVercelEnv ? '/tmp/phones_database.json' : 'phones_database.json';
-
-let phonesData = { phones: {} };
-try {
-  if (fs.existsSync(phonesFile)) {
-    phonesData = JSON.parse(fs.readFileSync(phonesFile, 'utf8'));
-  } else if (!isVercelEnv && fs.existsSync('phones_database.json')) {
-    phonesData = JSON.parse(fs.readFileSync('phones_database.json', 'utf8'));
-  }
-} catch (error) {
-  console.error('Error loading phones:', error);
-  phonesData = { phones: {} };
-}
-
-// Helper function to save data
-const saveData = () => {
-  try {
-    if (isVercelEnv && !fs.existsSync('/tmp')) {
-      fs.mkdirSync('/tmp', { recursive: true });
-    }
-    fs.writeFileSync(phonesFile, JSON.stringify(phonesData, null, 2));
-  } catch (error) {
-    console.error('Error saving phones:', error);
-  }
-};
-
 // Ensure uploads directory exists (only in non-serverless)
+const isVercelEnv = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
 const uploadsDir = isVercelEnv ? '/tmp/uploads/phones' : 'uploads/phones';
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Configure multer for image uploads
-const storage = multer.diskStorage({
+const storageConfig = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadsDir);
   },
@@ -63,7 +36,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage: storage,
+  storage: storageConfig,
   fileFilter: fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB limit
@@ -71,7 +44,7 @@ const upload = multer({
 });
 
 // Upload single image for a phone
-router.post('/upload/:phoneId', upload.single('image'), (req, res) => {
+router.post('/upload/:phoneId', upload.single('image'), async (req, res) => {
   try {
     const { phoneId } = req.params;
     const { alt, isPrimary } = req.body;
@@ -83,7 +56,8 @@ router.post('/upload/:phoneId', upload.single('image'), (req, res) => {
     }
     
     // Check if phone exists
-    if (!phonesData.phones[phoneId]) {
+    const phone = await storage.findOne('phones', { id: phoneId });
+    if (!phone) {
       // Delete uploaded file if phone doesn't exist
       fs.unlinkSync(req.file.path);
       return res.status(404).json({
@@ -98,34 +72,37 @@ router.post('/upload/:phoneId', upload.single('image'), (req, res) => {
       path: `/uploads/phones/${req.file.filename}`,
       size: req.file.size,
       mimetype: req.file.mimetype,
-      alt: alt || `${phonesData.phones[phoneId].brand} ${phonesData.phones[phoneId].model}`,
+      alt: alt || `${phone.brand} ${phone.model}`,
       isPrimary: isPrimary === 'true',
       uploadedAt: new Date().toISOString()
     };
     
-    // Add image to phone's images array
-    if (!phonesData.phones[phoneId].images) {
-      phonesData.phones[phoneId].images = [];
-    }
+    // Get existing images
+    const images = phone.images || [];
     
     // If this is set as primary, make others non-primary
     if (imageData.isPrimary) {
-      phonesData.phones[phoneId].images.forEach(img => {
+      images.forEach(img => {
         if (typeof img === 'object') {
           img.isPrimary = false;
         }
       });
     }
     
-    phonesData.phones[phoneId].images.push(imageData);
-    phonesData.phones[phoneId].updatedAt = new Date().toISOString();
+    images.push(imageData);
     
-    saveData();
+    // Update phone with new images
+    await storage.update('phones', { id: phoneId }, {
+      images,
+      updatedAt: new Date().toISOString()
+    });
+    
+    const updatedPhone = await storage.findOne('phones', { id: phoneId });
     
     res.json({
       message: 'Image uploaded successfully',
       image: imageData,
-      phone: phonesData.phones[phoneId],
+      phone: updatedPhone,
       timestamp: new Date().toISOString()
     });
     
@@ -139,7 +116,7 @@ router.post('/upload/:phoneId', upload.single('image'), (req, res) => {
 });
 
 // Upload multiple images for a phone
-router.post('/upload-multiple/:phoneId', upload.array('images', 5), (req, res) => {
+router.post('/upload-multiple/:phoneId', upload.array('images', 5), async (req, res) => {
   try {
     const { phoneId } = req.params;
     
@@ -150,7 +127,8 @@ router.post('/upload-multiple/:phoneId', upload.array('images', 5), (req, res) =
     }
     
     // Check if phone exists
-    if (!phonesData.phones[phoneId]) {
+    const phone = await storage.findOne('phones', { id: phoneId });
+    if (!phone) {
       // Delete uploaded files if phone doesn't exist
       req.files.forEach(file => {
         fs.unlinkSync(file.path);
@@ -167,34 +145,37 @@ router.post('/upload-multiple/:phoneId', upload.array('images', 5), (req, res) =
       path: `/uploads/phones/${file.filename}`,
       size: file.size,
       mimetype: file.mimetype,
-      alt: `${phonesData.phones[phoneId].brand} ${phonesData.phones[phoneId].model} - Image ${index + 1}`,
+      alt: `${phone.brand} ${phone.model} - Image ${index + 1}`,
       isPrimary: index === 0, // First image is primary
       uploadedAt: new Date().toISOString()
     }));
     
-    // Add images to phone's images array
-    if (!phonesData.phones[phoneId].images) {
-      phonesData.phones[phoneId].images = [];
-    }
+    // Get existing images
+    const images = phone.images || [];
     
     // If first image is primary, make existing images non-primary
     if (uploadedImages[0].isPrimary) {
-      phonesData.phones[phoneId].images.forEach(img => {
+      images.forEach(img => {
         if (typeof img === 'object') {
           img.isPrimary = false;
         }
       });
     }
     
-    phonesData.phones[phoneId].images.push(...uploadedImages);
-    phonesData.phones[phoneId].updatedAt = new Date().toISOString();
+    images.push(...uploadedImages);
     
-    saveData();
+    // Update phone with new images
+    await storage.update('phones', { id: phoneId }, {
+      images,
+      updatedAt: new Date().toISOString()
+    });
+    
+    const updatedPhone = await storage.findOne('phones', { id: phoneId });
     
     res.json({
       message: `${uploadedImages.length} images uploaded successfully`,
       images: uploadedImages,
-      phone: phonesData.phones[phoneId],
+      phone: updatedPhone,
       timestamp: new Date().toISOString()
     });
     
@@ -208,16 +189,16 @@ router.post('/upload-multiple/:phoneId', upload.array('images', 5), (req, res) =
 });
 
 // Get all images for a specific phone
-router.get('/phone/:phoneId', (req, res) => {
+router.get('/phone/:phoneId', async (req, res) => {
   const { phoneId } = req.params;
   
-  if (!phonesData.phones[phoneId]) {
+  const phone = await storage.findOne('phones', { id: phoneId });
+  if (!phone) {
     return res.status(404).json({
       error: 'Phone not found'
     });
   }
   
-  const phone = phonesData.phones[phoneId];
   const images = phone.images || [];
   
   // Filter out string URLs and only return uploaded image objects
@@ -233,13 +214,14 @@ router.get('/phone/:phoneId', (req, res) => {
 });
 
 // Get all uploaded images
-router.get('/all', (req, res) => {
+router.get('/all', async (req, res) => {
   const { page = 1, limit = 20 } = req.query;
   
   let allImages = [];
   
   // Collect all images from all phones
-  Object.values(phonesData.phones).forEach(phone => {
+  const phones = await storage.find('phones');
+  phones.forEach(phone => {
     if (phone.images) {
       const uploadedImages = phone.images
         .filter(img => typeof img === 'object')
@@ -273,23 +255,24 @@ router.get('/all', (req, res) => {
 });
 
 // Delete an image
-router.delete('/:phoneId/:imageId', (req, res) => {
+router.delete('/:phoneId/:imageId', async (req, res) => {
   const { phoneId, imageId } = req.params;
   
-  if (!phonesData.phones[phoneId]) {
+  const phone = await storage.findOne('phones', { id: phoneId });
+  if (!phone) {
     return res.status(404).json({
       error: 'Phone not found'
     });
   }
   
-  const phone = phonesData.phones[phoneId];
-  if (!phone.images) {
+  const images = phone.images || [];
+  if (images.length === 0) {
     return res.status(404).json({
       error: 'No images found for this phone'
     });
   }
   
-  const imageIndex = phone.images.findIndex(img => 
+  const imageIndex = images.findIndex(img => 
     typeof img === 'object' && img.id === imageId
   );
   
@@ -299,7 +282,7 @@ router.delete('/:phoneId/:imageId', (req, res) => {
     });
   }
   
-  const deletedImage = phone.images[imageIndex];
+  const deletedImage = images[imageIndex];
   
   // Delete physical file
   const filePath = path.join(uploadsDir, deletedImage.filename);
@@ -307,11 +290,14 @@ router.delete('/:phoneId/:imageId', (req, res) => {
     fs.unlinkSync(filePath);
   }
   
-  // Remove from database
-  phone.images.splice(imageIndex, 1);
-  phone.updatedAt = new Date().toISOString();
+  // Remove from images array
+  images.splice(imageIndex, 1);
   
-  saveData();
+  // Update phone
+  await storage.update('phones', { id: phoneId }, {
+    images,
+    updatedAt: new Date().toISOString()
+  });
   
   res.json({
     message: 'Image deleted successfully',
@@ -321,24 +307,25 @@ router.delete('/:phoneId/:imageId', (req, res) => {
 });
 
 // Update image metadata
-router.put('/:phoneId/:imageId', (req, res) => {
+router.put('/:phoneId/:imageId', async (req, res) => {
   const { phoneId, imageId } = req.params;
   const { alt, isPrimary } = req.body;
   
-  if (!phonesData.phones[phoneId]) {
+  const phone = await storage.findOne('phones', { id: phoneId });
+  if (!phone) {
     return res.status(404).json({
       error: 'Phone not found'
     });
   }
   
-  const phone = phonesData.phones[phoneId];
-  if (!phone.images) {
+  const images = phone.images || [];
+  if (images.length === 0) {
     return res.status(404).json({
       error: 'No images found for this phone'
     });
   }
   
-  const imageIndex = phone.images.findIndex(img => 
+  const imageIndex = images.findIndex(img => 
     typeof img === 'object' && img.id === imageId
   );
   
@@ -348,7 +335,7 @@ router.put('/:phoneId/:imageId', (req, res) => {
     });
   }
   
-  const image = phone.images[imageIndex];
+  const image = images[imageIndex];
   
   // Update metadata
   if (alt !== undefined) {
@@ -360,7 +347,7 @@ router.put('/:phoneId/:imageId', (req, res) => {
     
     if (newIsPrimary) {
       // Make all other images non-primary
-      phone.images.forEach(img => {
+      images.forEach(img => {
         if (typeof img === 'object') {
           img.isPrimary = false;
         }
@@ -371,9 +358,12 @@ router.put('/:phoneId/:imageId', (req, res) => {
   }
   
   image.updatedAt = new Date().toISOString();
-  phone.updatedAt = new Date().toISOString();
   
-  saveData();
+  // Update phone
+  await storage.update('phones', { id: phoneId }, {
+    images,
+    updatedAt: new Date().toISOString()
+  });
   
   res.json({
     message: 'Image updated successfully',
@@ -383,12 +373,13 @@ router.put('/:phoneId/:imageId', (req, res) => {
 });
 
 // Get image statistics
-router.get('/stats', (req, res) => {
+router.get('/stats', async (req, res) => {
   let totalImages = 0;
   let totalSize = 0;
   const phoneImageCounts = {};
   
-  Object.values(phonesData.phones).forEach(phone => {
+  const phones = await storage.find('phones');
+  phones.forEach(phone => {
     if (phone.images) {
       const uploadedImages = phone.images.filter(img => typeof img === 'object');
       phoneImageCounts[phone.id] = {

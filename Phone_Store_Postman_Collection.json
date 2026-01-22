@@ -1286,18 +1286,51 @@
 		{
 			"name": "Categories",
 			"item": [
-				{
-					"name": "Get All Categories",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/categories",
-							"host": ["{{base_url}}"],
-							"path": ["api", "categories"]
+			{
+				"name": "Get All Categories",
+				"request": {
+					"method": "GET",
+					"header": [],
+					"auth": {
+						"type": "noauth"
+					},
+					"url": {
+						"raw": "{{base_url}}/api/categories",
+						"host": ["{{base_url}}"],
+						"path": ["api", "categories"]
+					},
+					"description": "Get all product categories. This is a **public endpoint** - no authentication required.\n\n**⚠️ MUHIM:**\n- **Authorization header BO'LMASLIGI KERAK!** - Authorization tab'da **No Auth** tanlang\n- Bu endpoint public - token talab qilmaydi"
+				},
+				"event": [
+					{
+						"listen": "prerequest",
+						"script": {
+							"exec": [
+								"// Remove Authorization header for public endpoint",
+								"pm.request.headers.remove('Authorization');",
+								"console.log('✅ Authorization header removed for Categories');"
+							],
+							"type": "text/javascript"
+						}
+					},
+					{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"pm.test(\"Status code is 200\", function () {",
+								"    pm.response.to.have.status(200);",
+								"});",
+								"",
+								"pm.test(\"Response has categories\", function () {",
+								"    const jsonData = pm.response.json();",
+								"    pm.expect(jsonData).to.have.property('categories');",
+								"});"
+							],
+							"type": "text/javascript"
 						}
 					}
-				}
+				]
+			}
 			]
 		},
 		{

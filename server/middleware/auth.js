@@ -1,6 +1,6 @@
 // Authentication middleware
 import { verifyToken } from '../routes/auth.js';
-import fs from 'fs';
+import { storage } from '../utils/storage.js';
 
 // Middleware to verify JWT token
 export const authenticate = (req, res, next) => {
@@ -43,31 +43,12 @@ export const authenticate = (req, res, next) => {
 // Middleware to check if user is admin
 export const isAdmin = (req, res, next) => {
   // First authenticate
-  authenticate(req, res, () => {
+  authenticate(req, res, async () => {
     // Load user to check role
     try {
-      const isVercelEnv = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-      const usersFile = isVercelEnv ? '/tmp/users_database.json' : 'users_database.json';
+      const user = await storage.findOne('users', { userId: req.user.userId });
       
-      if (fs.existsSync(usersFile)) {
-        const data = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
-        const users = new Map(Object.entries(data.users || {}));
-        const user = users.get(req.user.userId);
-        
-        if (!user || user.role !== 'admin') {
-          return res.status(403).json({
-            success: false,
-            status: 'forbidden',
-            error: 'Admin access required',
-            message: 'Admin huquqi kerak',
-            timestamp: new Date().toISOString(),
-            version: '1.0.0'
-          });
-        }
-        
-        req.user.role = 'admin';
-        next();
-      } else {
+      if (!user || user.role !== 'admin') {
         return res.status(403).json({
           success: false,
           status: 'forbidden',
@@ -77,6 +58,9 @@ export const isAdmin = (req, res, next) => {
           version: '1.0.0'
         });
       }
+      
+      req.user.role = 'admin';
+      next();
     } catch (error) {
       return res.status(500).json({
         success: false,

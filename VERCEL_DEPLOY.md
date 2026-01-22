@@ -1,4 +1,4 @@
-# Vercel'ga Deploy Qilish
+        # Vercel'ga Deploy Qilish
 
 ## Avtomatik Deploy
 
