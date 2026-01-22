@@ -53,6 +53,12 @@ Environment: Production, Preview, Development
 Key: BASE_URL
 Value: https://phone-backend-eosin.vercel.app
 Environment: Production, Preview, Development
+
+⚠️ Muhim: Vercel'da deploy qilgandan keyin, haqiqiy URL'ni oling:
+1. Vercel Dashboard → phone-backend project
+2. Settings → Domains
+3. Yoki Deployments → Latest deployment → URL
+4. Haqiqiy URL'ni BASE_URL ga qo'ying
 ```
 
 ### 4. WEBSOCKET_URL
@@ -60,6 +66,10 @@ Environment: Production, Preview, Development
 Key: WEBSOCKET_URL
 Value: wss://phone-backend-eosin.vercel.app
 Environment: Production, Preview, Development
+
+⚠️ Eslatma: Vercel serverless'da WebSocket ishlamaydi (stateless limitation).
+Bu variable faqat kelajakda WebSocket support qo'shilganda ishlatiladi.
+Hozircha ixtiyoriy.
 ```
 
 ---
@@ -261,22 +271,37 @@ curl -X POST https://phone-backend-eosin.vercel.app/api/auth/register \
 
 ## 📋 Checklist:
 
-- [ ] NODE_ENV qo'shildi
-- [ ] JWT_SECRET qo'shildi (random string)
-- [ ] BASE_URL qo'shildi
-- [ ] WEBSOCKET_URL qo'shildi
-- [ ] Database (MongoDB yoki PostgreSQL) qo'shildi (ixtiyoriy)
-- [ ] Twilio credentials qo'shildi (ixtiyoriy)
-- [ ] Sentry DSN qo'shildi (ixtiyoriy)
-- [ ] Redeploy qilindi
-- [ ] Test qilindi
+### Majburiy:
+- [ ] NODE_ENV qo'shildi (`production`)
+- [ ] JWT_SECRET qo'shildi (random string yaratildi)
+- [ ] BASE_URL qo'shildi (Vercel deployment URL)
+- [ ] Redeploy qilindi (environment variables qo'shgandan keyin)
+- [ ] Test qilindi (`/api/health` endpoint)
+
+### Ixtiyoriy (Production uchun tavsiya etiladi):
+- [ ] WEBSOCKET_URL qo'shildi (ixtiyoriy - hozircha ishlamaydi)
+- [ ] Database (MongoDB yoki PostgreSQL) qo'shildi
+- [ ] Twilio credentials qo'shildi (SMS uchun)
+- [ ] Sentry DSN qo'shildi (Error tracking uchun)
 
 ---
 
 ## 💡 Maslahatlar:
 
-1. **JWT_SECRET** - har doim random, uzun string bo'lishi kerak
-2. **Database** - production uchun real database ishlatish tavsiya etiladi
-3. **SMS** - trial account'da faqat verified raqamlarga ishlaydi
-4. **Sentry** - free tier'da yaxshi ishlaydi
-5. **Environment** - barcha variable'larni Production, Preview, va Development uchun qo'shing
+1. **JWT_SECRET** - har doim random, uzun string bo'lishi kerak (kamida 32 belgi)
+2. **BASE_URL** - Vercel'da deploy qilgandan keyin haqiqiy URL'ni oling
+3. **Database** - production uchun real database ishlatish tavsiya etiladi (file-based storage Vercel'da ishlamaydi)
+4. **SMS** - trial account'da faqat verified raqamlarga ishlaydi
+5. **Sentry** - free tier'da yaxshi ishlaydi
+6. **Environment** - barcha variable'larni Production, Preview, va Development uchun qo'shing
+7. **Redeploy** - Environment variables qo'shgandan keyin mutlaqo redeploy qiling
+8. **WebSocket** - Vercel serverless'da ishlamaydi (stateless limitation)
+
+## 🚨 Muhim Eslatmalar:
+
+### Vercel Serverless Limitations:
+- ❌ **WebSocket** - ishlamaydi (stateless functions)
+- ⚠️ **File Storage** - `/tmp` directory ishlatiladi (vaqtinchalik)
+- ✅ **Database** - Real database (MongoDB/PostgreSQL) tavsiya etiladi
+- ✅ **API Endpoints** - Barcha REST API endpoint'lar ishlaydi
+- ✅ **Static Files** - `public` folder ishlaydi
