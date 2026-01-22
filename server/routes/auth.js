@@ -1,40 +1,9 @@
 // Authentication and Authorization routes
 import express from 'express';
-import fs from 'fs';
 import crypto from 'crypto';
+import { storage } from '../utils/storage.js';
 
 const router = express.Router();
-
-// Users database file
-// In Vercel/serverless, use /tmp directory for file writes
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-const usersFile = isVercel ? '/tmp/users_database.json' : 'users_database.json';
-
-// Load users from file
-const loadUsers = () => {
-  try {
-    if (fs.existsSync(usersFile)) {
-      const data = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
-      return new Map(Object.entries(data.users || {}));
-    }
-  } catch (error) {
-    console.error('Error loading users:', error);
-  }
-  return new Map();
-};
-
-// Save users to file
-const saveUsers = (users, userCounter) => {
-  try {
-    const data = {
-      users: Object.fromEntries(users),
-      userCounter
-    };
-    fs.writeFileSync(usersFile, JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error('Error saving users:', error);
-  }
-};
 
 // Simple password hashing (using crypto)
 const hashPassword = (password) => {
@@ -99,23 +68,24 @@ const verifyToken = (token) => {
 };
 
 // ========== REGISTER ==========
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
   const { 
     name, 
     email, 
     password,
+    confirmPassword,
     phone, 
     address,
     preferences = {} 
   } = req.body;
   
   // Validation
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !confirmPassword) {
     return res.status(400).json({
       success: false,
       status: 'validation_error',
-      error: 'Name, email and password are required',
-      message: 'Ism, email va parol kiritilishi shart',
+      error: 'Name, email, password and confirmPassword are required',
+      message: 'Ism, email, parol va parol tasdiqlash kiritilishi shart',
       timestamp: new Date().toISOString(),
       version: '1.0.0'
     });
@@ -146,21 +116,20 @@ router.post('/register', (req, res) => {
     });
   }
   
-  const users = loadUsers();
-  let userCounter = 1;
-  
-  // Get user counter
-  try {
-    if (fs.existsSync(usersFile)) {
-      const data = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
-      userCounter = (data.userCounter || 0) + 1;
-    }
-  } catch (error) {
-    console.error('Error loading user counter:', error);
+  // Password confirmation validation
+  if (password !== confirmPassword) {
+    return res.status(400).json({
+      success: false,
+      status: 'validation_error',
+      error: 'Passwords do not match',
+      message: 'Parollar mos kelmaydi. Iltimos, parol va tasdiqlash parolini bir xil kiriting',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
   }
   
   // Check if user already exists
-  const existingUser = Array.from(users.values()).find(user => user.email.toLowerCase() === email.toLowerCase());
+  const existingUser = await storage.findOne('users', { email: email.toLowerCase() });
   if (existingUser) {
     return res.status(409).json({
       success: false,
@@ -180,7 +149,9 @@ router.post('/register', (req, res) => {
     });
   }
   
-  const userId = `user_${userCounter}`;
+  // Get next user ID
+  const userCount = await storage.count('users');
+  const userId = `user_${userCount + 1}`;
   const hashedPassword = hashPassword(password);
   
   const user = {
@@ -205,8 +176,7 @@ router.post('/register', (req, res) => {
     role: 'user' // user, admin
   };
   
-  users.set(userId, user);
-  saveUsers(users, userCounter);
+  await storage.insert('users', user);
   
   // Generate token
   const token = generateToken(userId, user.email);
@@ -238,7 +208,7 @@ router.post('/register', (req, res) => {
 });
 
 // ========== LOGIN ==========
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   
   // Validation
@@ -253,13 +223,13 @@ router.post('/login', (req, res) => {
     });
   }
   
-  const users = loadUsers();
   const hashedPassword = hashPassword(password);
   
   // Find user by email and password
-  const user = Array.from(users.values()).find(
-    u => u.email.toLowerCase() === email.toLowerCase() && u.password === hashedPassword
-  );
+  const user = await storage.findOne('users', { 
+    email: email.toLowerCase(),
+    password: hashedPassword
+  });
   
   if (!user) {
     return res.status(401).json({
@@ -313,7 +283,7 @@ router.post('/login', (req, res) => {
 });
 
 // ========== GET CURRENT USER (ME) ==========
-router.get('/me', (req, res) => {
+router.get('/me', async (req, res) => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -341,8 +311,7 @@ router.get('/me', (req, res) => {
     });
   }
   
-  const users = loadUsers();
-  const user = users.get(payload.userId);
+  const user = await storage.findOne('users', { userId: payload.userId });
   
   if (!user) {
     return res.status(404).json({
@@ -383,7 +352,7 @@ router.get('/me', (req, res) => {
 });
 
 // ========== REFRESH TOKEN ==========
-router.post('/refresh', (req, res) => {
+router.post('/refresh', async (req, res) => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -411,8 +380,7 @@ router.post('/refresh', (req, res) => {
     });
   }
   
-  const users = loadUsers();
-  const user = users.get(payload.userId);
+  const user = await storage.findOne('users', { userId: payload.userId });
   
   if (!user || !user.isActive) {
     return res.status(401).json({

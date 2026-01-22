@@ -1,43 +1,12 @@
 // Modal endpoints for UI mockups
 import express from 'express';
-import fs from 'fs';
+import { storage } from '../utils/storage.js';
 
 const router = express.Router();
 
-// Storage files
-// In Vercel/serverless, use /tmp directory for file writes
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-const getFilePath = (filename) => isVercel ? `/tmp/${filename}` : filename;
-const callbacksFile = getFilePath('callbacks_database.json');
-const lowpriceFile = getFilePath('lowprice_database.json');
-const ordersFile = getFilePath('orders_database.json');
-const creditFile = getFilePath('credit_database.json');
-const tradeFile = getFilePath('trade_database.json');
-
-// Load data from files
-const loadData = (file) => {
-  try {
-    if (fs.existsSync(file)) {
-      return JSON.parse(fs.readFileSync(file, 'utf8'));
-    }
-  } catch (error) {
-    console.error(`Error loading ${file}:`, error);
-  }
-  return { items: [], counter: 1 };
-};
-
-// Save data to files
-const saveData = (file, data) => {
-  try {
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error(`Error saving ${file}:`, error);
-  }
-};
-
 // ========== CALLBACK MODAL ==========
 // POST /api/callback - Request callback
-router.post('/callback', (req, res) => {
+router.post('/callback', async (req, res) => {
   const { phone, name, preferredTime, message } = req.body;
   
   if (!phone) {
@@ -51,7 +20,6 @@ router.post('/callback', (req, res) => {
     });
   }
   
-  const data = loadData(callbacksFile);
   const callbackId = `callback_${Date.now()}`;
   
   const callback = {
@@ -65,9 +33,7 @@ router.post('/callback', (req, res) => {
     updatedAt: new Date().toISOString()
   };
   
-  data.items.push(callback);
-  data.counter = (data.counter || 0) + 1;
-  saveData(callbacksFile, data);
+  await storage.insert('callbacks', callback);
   
   res.status(201).json({
     success: true,
@@ -92,11 +58,10 @@ router.post('/callback', (req, res) => {
 });
 
 // GET /api/callback - Get all callbacks (admin)
-router.get('/callback', (req, res) => {
-  const data = loadData(callbacksFile);
+router.get('/callback', async (req, res) => {
   const { page = 1, limit = 10, status } = req.query;
   
-  let items = data.items || [];
+  let items = await storage.find('callbacks');
   
   if (status) {
     items = items.filter(item => item.status === status);
@@ -136,7 +101,7 @@ router.get('/callback', (req, res) => {
 
 // ========== LOWPRICE MODAL ==========
 // POST /api/lowprice - Report lower price
-router.post('/lowprice', (req, res) => {
+router.post('/lowprice', async (req, res) => {
   const { phoneId, competitorUrl, competitorPrice, phone, name, email } = req.body;
   
   if (!phoneId || !competitorPrice) {
@@ -150,7 +115,6 @@ router.post('/lowprice', (req, res) => {
     });
   }
   
-  const data = loadData(lowpriceFile);
   const reportId = `lowprice_${Date.now()}`;
   
   const report = {
@@ -166,9 +130,7 @@ router.post('/lowprice', (req, res) => {
     updatedAt: new Date().toISOString()
   };
   
-  data.items.push(report);
-  data.counter = (data.counter || 0) + 1;
-  saveData(lowpriceFile, data);
+  await storage.insert('lowprice', report);
   
   res.status(201).json({
     success: true,
@@ -195,15 +157,16 @@ router.post('/lowprice', (req, res) => {
 });
 
 // GET /api/lowprice - Get all reports (admin)
-router.get('/lowprice', (req, res) => {
-  const data = loadData(lowpriceFile);
+router.get('/lowprice', async (req, res) => {
+  const reports = await storage.find('lowprice');
+  
   res.json({
     success: true,
     status: 'ok',
     data: {
-      reports: data.items || []
+      reports: reports
     },
-    message: `${(data.items || []).length} ta past narx xabari topildi`,
+    message: `${reports.length} ta past narx xabari topildi`,
     links: {
       self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
       create: `${req.protocol}://${req.get('host')}/api/modals/lowprice`
@@ -215,7 +178,7 @@ router.get('/lowprice', (req, res) => {
 
 // ========== 1CLICK ORDER MODAL ==========
 // POST /api/oneclick - One-click order
-router.post('/oneclick', (req, res) => {
+router.post('/oneclick', async (req, res) => {
   const { phoneId, phone, name, address, paymentMethod } = req.body;
   
   if (!phoneId || !phone) {
@@ -229,7 +192,6 @@ router.post('/oneclick', (req, res) => {
     });
   }
   
-  const data = loadData(ordersFile);
   const orderId = `oneclick_${Date.now()}`;
   
   const order = {
@@ -245,9 +207,7 @@ router.post('/oneclick', (req, res) => {
     updatedAt: new Date().toISOString()
   };
   
-  data.items.push(order);
-  data.counter = (data.counter || 0) + 1;
-  saveData(ordersFile, data);
+  await storage.insert('orders', order);
   
   res.status(201).json({
     success: true,
@@ -277,7 +237,7 @@ router.post('/oneclick', (req, res) => {
 
 // ========== CREDIT MODAL ==========
 // POST /api/credit - Apply for credit
-router.post('/credit', (req, res) => {
+router.post('/credit', async (req, res) => {
   const { phoneId, name, phone, email, passport, salary, creditAmount, months } = req.body;
   
   if (!phoneId || !name || !phone || !passport) {
@@ -291,7 +251,6 @@ router.post('/credit', (req, res) => {
     });
   }
   
-  const data = loadData(creditFile);
   const applicationId = `credit_${Date.now()}`;
   
   const application = {
@@ -309,9 +268,7 @@ router.post('/credit', (req, res) => {
     updatedAt: new Date().toISOString()
   };
   
-  data.items.push(application);
-  data.counter = (data.counter || 0) + 1;
-  saveData(creditFile, data);
+  await storage.insert('credit', application);
   
   res.status(201).json({
     success: true,
@@ -340,15 +297,16 @@ router.post('/credit', (req, res) => {
 });
 
 // GET /api/credit - Get all applications (admin)
-router.get('/credit', (req, res) => {
-  const data = loadData(creditFile);
+router.get('/credit', async (req, res) => {
+  const applications = await storage.find('credit');
+  
   res.json({
     success: true,
     status: 'ok',
     data: {
-      applications: data.items || []
+      applications: applications
     },
-    message: `${(data.items || []).length} ta kredit arizasi topildi`,
+    message: `${applications.length} ta kredit arizasi topildi`,
     links: {
       self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
       create: `${req.protocol}://${req.get('host')}/api/modals/credit`
@@ -360,7 +318,7 @@ router.get('/credit', (req, res) => {
 
 // ========== TRADE-IN MODAL ==========
 // POST /api/trade - Trade-in request
-router.post('/trade', (req, res) => {
+router.post('/trade', async (req, res) => {
   const { newPhoneId, oldPhoneBrand, oldPhoneModel, oldPhoneCondition, name, phone, email } = req.body;
   
   if (!newPhoneId || !oldPhoneBrand || !oldPhoneModel || !name || !phone) {
@@ -374,7 +332,6 @@ router.post('/trade', (req, res) => {
     });
   }
   
-  const data = loadData(tradeFile);
   const tradeId = `trade_${Date.now()}`;
   
   const trade = {
@@ -392,9 +349,7 @@ router.post('/trade', (req, res) => {
     updatedAt: new Date().toISOString()
   };
   
-  data.items.push(trade);
-  data.counter = (data.counter || 0) + 1;
-  saveData(tradeFile, data);
+  await storage.insert('trade', trade);
   
   res.status(201).json({
     success: true,
@@ -424,15 +379,16 @@ router.post('/trade', (req, res) => {
 });
 
 // GET /api/trade - Get all trade requests (admin)
-router.get('/trade', (req, res) => {
-  const data = loadData(tradeFile);
+router.get('/trade', async (req, res) => {
+  const trades = await storage.find('trade');
+  
   res.json({
     success: true,
     status: 'ok',
     data: {
-      trades: data.items || []
+      trades: trades
     },
-    message: `${(data.items || []).length} ta almashtirish so'rovi topildi`,
+    message: `${trades.length} ta almashtirish so'rovi topildi`,
     links: {
       self: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
       create: `${req.protocol}://${req.get('host')}/api/modals/trade`

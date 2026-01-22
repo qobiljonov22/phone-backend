@@ -1,130 +1,14 @@
 // User management functionality
 import express from 'express';
-import fs from 'fs';
-import path from 'path';
+import { storage } from '../utils/storage.js';
 
 const router = express.Router();
 
-// Users database file
-// In Vercel/serverless, use /tmp directory for file writes
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-const usersFile = isVercel ? '/tmp/users_database.json' : 'users_database.json';
-
-// Load users from file or initialize empty
-let users = new Map();
-let userCounter = 1;
-
-// Load users from file
-const loadUsers = () => {
-  try {
-    if (fs.existsSync(usersFile)) {
-      const data = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
-      users = new Map(Object.entries(data.users || {}));
-      userCounter = data.userCounter || 1;
-    }
-  } catch (error) {
-    console.error('Error loading users:', error);
-    users = new Map();
-    userCounter = 1;
-  }
-};
-
-// Save users to file
-const saveUsers = () => {
-  try {
-    const data = {
-      users: Object.fromEntries(users),
-      userCounter
-    };
-    fs.writeFileSync(usersFile, JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error('Error saving users:', error);
-  }
-};
-
-// Initialize: load users on startup
-loadUsers();
-
-// Create user profile
-router.post('/register', (req, res) => {
-  const { 
-    name, 
-    email, 
-    phone, 
-    address,
-    preferences = {} 
-  } = req.body;
-  
-  if (!name || !email) {
-    return res.status(400).json({
-      success: false,
-      status: 'validation_error',
-      error: 'Name and email are required',
-      message: 'Ism va email kiritilishi shart',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0'
-    });
-  }
-  
-  // Check if user already exists
-  const existingUser = Array.from(users.values()).find(user => user.email === email);
-  if (existingUser) {
-    return res.status(409).json({
-      success: false,
-      status: 'already_exists',
-      error: 'User with this email already exists',
-      message: 'Bu email bilan foydalanuvchi allaqachon mavjud',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0'
-    });
-  }
-  
-  const userId = `user_${userCounter++}`;
-  const user = {
-    userId,
-    name,
-    email,
-    phone: phone || '',
-    address: address || {},
-    preferences: {
-      notifications: true,
-      newsletter: false,
-      currency: 'USD',
-      language: 'en',
-      ...preferences
-    },
-    wishlist: [],
-    orderHistory: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isActive: true
-  };
-  
-  users.set(userId, user);
-  saveUsers(); // Save to file
-  
-  res.status(201).json({
-    success: true,
-    status: 'created',
-    data: {
-      user: { ...user, password: undefined } // Don't return password
-    },
-    message: 'Foydalanuvchi muvaffaqiyatli ro\'yxatdan o\'tdi',
-    links: {
-      self: `${req.protocol}://${req.get('host')}/api/users/${user.userId}`,
-      profile: `${req.protocol}://${req.get('host')}/api/users/${user.userId}`,
-      wishlist: `${req.protocol}://${req.get('host')}/api/users/${user.userId}/wishlist`
-    },
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
-});
-
 // Get user profile
-router.get('/:userId', (req, res) => {
+router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
   
-  const user = users.get(userId);
+  const user = await storage.findOne('users', { userId });
   if (!user) {
     return res.status(404).json({
       success: false,
@@ -136,11 +20,14 @@ router.get('/:userId', (req, res) => {
     });
   }
   
+  // Remove password from response
+  const { password, ...safeUser } = user;
+  
   res.json({
     success: true,
     status: 'ok',
     data: {
-      user: { ...user, password: undefined }
+      user: safeUser
     },
     message: 'Foydalanuvchi ma\'lumotlari yuklandi',
     links: {
@@ -154,11 +41,11 @@ router.get('/:userId', (req, res) => {
 });
 
 // Update user profile
-router.put('/:userId', (req, res) => {
+router.put('/:userId', async (req, res) => {
   const { userId } = req.params;
   const updateData = req.body;
   
-  const user = users.get(userId);
+  const user = await storage.findOne('users', { userId });
   if (!user) {
     return res.status(404).json({
       success: false,
@@ -172,21 +59,25 @@ router.put('/:userId', (req, res) => {
   
   // Update allowed fields
   const allowedFields = ['name', 'phone', 'address', 'preferences'];
+  const updates = {};
   allowedFields.forEach(field => {
     if (updateData[field] !== undefined) {
-      user[field] = updateData[field];
+      updates[field] = updateData[field];
     }
   });
   
-  user.updatedAt = new Date();
-  users.set(userId, user);
-  saveUsers(); // Save to file
+  updates.updatedAt = new Date().toISOString();
+  
+  const updatedUser = await storage.update('users', { userId }, updates);
+  
+  // Remove password from response
+  const { password, ...safeUser } = updatedUser;
   
   res.json({
     success: true,
     status: 'updated',
     data: {
-      user: { ...user, password: undefined }
+      user: safeUser
     },
     message: 'Profil muvaffaqiyatli yangilandi',
     links: {
@@ -199,10 +90,10 @@ router.put('/:userId', (req, res) => {
 });
 
 // Wishlist management
-router.get('/:userId/wishlist', (req, res) => {
+router.get('/:userId/wishlist', async (req, res) => {
   const { userId } = req.params;
   
-  const user = users.get(userId);
+  const user = await storage.findOne('users', { userId });
   if (!user) {
     return res.status(404).json({
       success: false,
@@ -232,7 +123,7 @@ router.get('/:userId/wishlist', (req, res) => {
   });
 });
 
-router.post('/:userId/wishlist', (req, res) => {
+router.post('/:userId/wishlist', async (req, res) => {
   const { userId } = req.params;
   const { phoneId, phone } = req.body;
   
@@ -247,7 +138,7 @@ router.post('/:userId/wishlist', (req, res) => {
     });
   }
   
-  const user = users.get(userId);
+  const user = await storage.findOne('users', { userId });
   if (!user) {
     return res.status(404).json({
       success: false,
@@ -259,12 +150,10 @@ router.post('/:userId/wishlist', (req, res) => {
     });
   }
   
-  if (!user.wishlist) {
-    user.wishlist = [];
-  }
+  const wishlist = user.wishlist || [];
   
   // Check if already in wishlist
-  const existingIndex = user.wishlist.findIndex(item => item.phoneId === phoneId);
+  const existingIndex = wishlist.findIndex(item => item.phoneId === phoneId);
   if (existingIndex > -1) {
     return res.status(409).json({
       success: false,
@@ -276,23 +165,24 @@ router.post('/:userId/wishlist', (req, res) => {
     });
   }
   
-  user.wishlist.push({
+  wishlist.push({
     phoneId,
     phone,
-    addedAt: new Date()
+    addedAt: new Date().toISOString()
   });
   
-  user.updatedAt = new Date();
-  users.set(userId, user);
-  saveUsers(); // Save to file
+  await storage.update('users', { userId }, {
+    wishlist,
+    updatedAt: new Date().toISOString()
+  });
   
   res.status(201).json({
     success: true,
     status: 'added',
     data: {
-      wishlist: user.wishlist,
-      addedItem: user.wishlist[user.wishlist.length - 1],
-      count: user.wishlist.length
+      wishlist: wishlist,
+      addedItem: wishlist[wishlist.length - 1],
+      count: wishlist.length
     },
     message: 'Telefon xohlar ro\'yxatiga qo\'shildi',
     links: {
@@ -304,10 +194,10 @@ router.post('/:userId/wishlist', (req, res) => {
   });
 });
 
-router.delete('/:userId/wishlist/:phoneId', (req, res) => {
+router.delete('/:userId/wishlist/:phoneId', async (req, res) => {
   const { userId, phoneId } = req.params;
   
-  const user = users.get(userId);
+  const user = await storage.findOne('users', { userId });
   if (!user) {
     return res.status(404).json({
       success: false,
@@ -319,7 +209,9 @@ router.delete('/:userId/wishlist/:phoneId', (req, res) => {
     });
   }
   
-  if (!user.wishlist) {
+  const wishlist = user.wishlist || [];
+  
+  if (wishlist.length === 0) {
     return res.status(404).json({
       success: false,
       status: 'not_found',
@@ -330,7 +222,7 @@ router.delete('/:userId/wishlist/:phoneId', (req, res) => {
     });
   }
   
-  const itemIndex = user.wishlist.findIndex(item => item.phoneId === phoneId);
+  const itemIndex = wishlist.findIndex(item => item.phoneId === phoneId);
   if (itemIndex === -1) {
     return res.status(404).json({
       success: false,
@@ -342,19 +234,21 @@ router.delete('/:userId/wishlist/:phoneId', (req, res) => {
     });
   }
   
-  const removedItem = user.wishlist[itemIndex];
-  user.wishlist.splice(itemIndex, 1);
-  user.updatedAt = new Date();
-  users.set(userId, user);
-  saveUsers(); // Save to file
+  const removedItem = wishlist[itemIndex];
+  wishlist.splice(itemIndex, 1);
+  
+  await storage.update('users', { userId }, {
+    wishlist,
+    updatedAt: new Date().toISOString()
+  });
   
   res.json({
     success: true,
     status: 'removed',
     data: {
-      wishlist: user.wishlist,
+      wishlist: wishlist,
       removedItem: removedItem,
-      count: user.wishlist.length
+      count: wishlist.length
     },
     message: 'Telefon xohlar ro\'yxatidan olib tashlandi',
     links: {
@@ -367,11 +261,11 @@ router.delete('/:userId/wishlist/:phoneId', (req, res) => {
 });
 
 // User preferences
-router.put('/:userId/preferences', (req, res) => {
+router.put('/:userId/preferences', async (req, res) => {
   const { userId } = req.params;
   const { preferences } = req.body;
   
-  const user = users.get(userId);
+  const user = await storage.findOne('users', { userId });
   if (!user) {
     return res.status(404).json({
       success: false,
@@ -383,16 +277,18 @@ router.put('/:userId/preferences', (req, res) => {
     });
   }
   
-  user.preferences = { ...user.preferences, ...preferences };
-  user.updatedAt = new Date();
-  users.set(userId, user);
-  saveUsers(); // Save to file
+  const updatedPreferences = { ...user.preferences, ...preferences };
+  
+  await storage.update('users', { userId }, {
+    preferences: updatedPreferences,
+    updatedAt: new Date().toISOString()
+  });
   
   res.json({
     success: true,
     status: 'updated',
     data: {
-      preferences: user.preferences
+      preferences: updatedPreferences
     },
     message: 'Sozlamalar muvaffaqiyatli yangilandi',
     links: {
@@ -405,17 +301,17 @@ router.put('/:userId/preferences', (req, res) => {
 });
 
 // Get all users (admin endpoint)
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const { page = 1, limit = 10, search } = req.query;
   
-  let allUsers = Array.from(users.values());
+  let allUsers = await storage.find('users');
   
   // Search functionality
   if (search) {
     const searchLower = search.toLowerCase();
     allUsers = allUsers.filter(user => 
-      user.name.toLowerCase().includes(searchLower) ||
-      user.email.toLowerCase().includes(searchLower)
+      user.name?.toLowerCase().includes(searchLower) ||
+      user.email?.toLowerCase().includes(searchLower)
     );
   }
   
@@ -425,10 +321,10 @@ router.get('/', (req, res) => {
   const paginatedUsers = allUsers.slice(startIndex, endIndex);
   
   // Remove sensitive data
-  const safeUsers = paginatedUsers.map(user => ({
-    ...user,
-    password: undefined
-  }));
+  const safeUsers = paginatedUsers.map(user => {
+    const { password, ...safeUser } = user;
+    return safeUser;
+  });
   
   res.json({
     success: true,
@@ -456,16 +352,11 @@ router.get('/', (req, res) => {
 });
 
 // Delete user by email (for testing/development)
-router.delete('/email/:email', (req, res) => {
+router.delete('/email/:email', async (req, res) => {
   const { email } = req.params;
   
-  // Reload users to get latest data
-  loadUsers();
-  
   // Find user by email
-  const userToDelete = Array.from(users.values()).find(
-    u => u.email.toLowerCase() === email.toLowerCase()
-  );
+  const userToDelete = await storage.findOne('users', { email: email.toLowerCase() });
   
   if (!userToDelete) {
     return res.status(404).json({
@@ -479,8 +370,7 @@ router.delete('/email/:email', (req, res) => {
   }
   
   // Delete user
-  users.delete(userToDelete.userId);
-  saveUsers();
+  await storage.delete('users', { userId: userToDelete.userId });
   
   res.json({
     success: true,
@@ -504,13 +394,10 @@ router.delete('/email/:email', (req, res) => {
 });
 
 // Delete user by userId
-router.delete('/:userId', (req, res) => {
+router.delete('/:userId', async (req, res) => {
   const { userId } = req.params;
   
-  // Reload users to get latest data
-  loadUsers();
-  
-  const user = users.get(userId);
+  const user = await storage.findOne('users', { userId });
   
   if (!user) {
     return res.status(404).json({
@@ -524,8 +411,7 @@ router.delete('/:userId', (req, res) => {
   }
   
   // Delete user
-  users.delete(userId);
-  saveUsers();
+  await storage.delete('users', { userId });
   
   res.json({
     success: true,

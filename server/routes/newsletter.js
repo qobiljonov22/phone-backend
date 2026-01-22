@@ -1,36 +1,11 @@
 // Newsletter subscription functionality
 import express from 'express';
-import fs from 'fs';
+import { storage } from '../utils/storage.js';
 
 const router = express.Router();
 
-// In Vercel/serverless, use /tmp directory for file writes
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-const newsletterFile = isVercel ? '/tmp/newsletter_database.json' : 'newsletter_database.json';
-
-// Load subscribers
-const loadSubscribers = () => {
-  try {
-    if (fs.existsSync(newsletterFile)) {
-      return JSON.parse(fs.readFileSync(newsletterFile, 'utf8'));
-    }
-  } catch (error) {
-    console.error('Error loading newsletter:', error);
-  }
-  return { subscribers: [], counter: 1 };
-};
-
-// Save subscribers
-const saveSubscribers = (data) => {
-  try {
-    fs.writeFileSync(newsletterFile, JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error('Error saving newsletter:', error);
-  }
-};
-
 // Subscribe to newsletter
-router.post('/subscribe', (req, res) => {
+router.post('/subscribe', async (req, res) => {
   const { email, name } = req.body;
   
   if (!email) {
@@ -57,10 +32,8 @@ router.post('/subscribe', (req, res) => {
     });
   }
   
-  const data = loadSubscribers();
-  
   // Check if already subscribed
-  const existing = data.subscribers.find(s => s.email.toLowerCase() === email.toLowerCase());
+  const existing = await storage.findOne('newsletter', { email: email.toLowerCase() });
   if (existing) {
     return res.status(409).json({
       success: false,
@@ -81,9 +54,7 @@ router.post('/subscribe', (req, res) => {
     unsubscribedAt: null
   };
   
-  data.subscribers.push(subscriber);
-  data.counter = (data.counter || 0) + 1;
-  saveSubscribers(data);
+  await storage.insert('newsletter', subscriber);
   
   res.status(201).json({
     success: true,
@@ -108,7 +79,7 @@ router.post('/subscribe', (req, res) => {
 });
 
 // Unsubscribe from newsletter
-router.post('/unsubscribe', (req, res) => {
+router.post('/unsubscribe', async (req, res) => {
   const { email } = req.body;
   
   if (!email) {
@@ -122,8 +93,7 @@ router.post('/unsubscribe', (req, res) => {
     });
   }
   
-  const data = loadSubscribers();
-  const subscriber = data.subscribers.find(s => s.email.toLowerCase() === email.toLowerCase());
+  const subscriber = await storage.findOne('newsletter', { email: email.toLowerCase() });
   
   if (!subscriber) {
     return res.status(404).json({
@@ -136,9 +106,10 @@ router.post('/unsubscribe', (req, res) => {
     });
   }
   
-  subscriber.status = 'unsubscribed';
-  subscriber.unsubscribedAt = new Date().toISOString();
-  saveSubscribers(data);
+  await storage.update('newsletter', { id: subscriber.id }, {
+    status: 'unsubscribed',
+    unsubscribedAt: new Date().toISOString()
+  });
   
   res.json({
     success: true,
@@ -147,8 +118,8 @@ router.post('/unsubscribe', (req, res) => {
       subscriber: {
         id: subscriber.id,
         email: subscriber.email,
-        status: subscriber.status,
-        unsubscribedAt: subscriber.unsubscribedAt
+        status: 'unsubscribed',
+        unsubscribedAt: new Date().toISOString()
       }
     },
     message: 'Obuna bekor qilindi',
@@ -161,11 +132,10 @@ router.post('/unsubscribe', (req, res) => {
 });
 
 // Get all subscribers (admin)
-router.get('/subscribers', (req, res) => {
-  const data = loadSubscribers();
+router.get('/subscribers', async (req, res) => {
   const { status } = req.query;
   
-  let subscribers = data.subscribers || [];
+  let subscribers = await storage.find('newsletter');
   
   if (status) {
     subscribers = subscribers.filter(s => s.status === status);

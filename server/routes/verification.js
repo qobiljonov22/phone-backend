@@ -1,64 +1,15 @@
 // Phone number verification with OTP (One-Time Password)
 import express from 'express';
-import fs from 'fs';
 import crypto from 'crypto';
+import { storage } from '../utils/storage.js';
+import { sendOTPCode } from '../utils/sms.js';
 
 const router = express.Router();
-
-// OTP storage file
-// In Vercel/serverless, use /tmp directory for file writes
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-const otpFile = isVercel ? '/tmp/otp_database.json' : 'otp_database.json';
-
-// Load OTPs from file
-const loadOTPs = () => {
-  try {
-    if (fs.existsSync(otpFile)) {
-      return JSON.parse(fs.readFileSync(otpFile, 'utf8'));
-    }
-  } catch (error) {
-    console.error('Error loading OTPs:', error);
-  }
-  return { otps: [] };
-};
-
-// Save OTPs to file
-const saveOTPs = (data) => {
-  try {
-    // Ensure data structure is correct
-    if (!data.otps) {
-      data.otps = [];
-    }
-    
-    // Add metadata
-    data.metadata = {
-      lastUpdated: new Date().toISOString(),
-      totalOTPs: data.otps.length,
-      verifiedOTPs: data.otps.filter(o => o.verified).length,
-      activeOTPs: data.otps.filter(o => !o.verified && new Date(o.expiresAt).getTime() > Date.now()).length
-    };
-    
-    // Sort by creation date (newest first)
-    data.otps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
-    // Save to JSON file with proper formatting
-    fs.writeFileSync(otpFile, JSON.stringify(data, null, 2), 'utf8');
-    
-    console.log(`✅ OTP data saved to ${otpFile} (${data.otps.length} OTPs, ${data.metadata.activeOTPs} active)`);
-    return true;
-  } catch (error) {
-    console.error('❌ Error saving OTPs:', error);
-    throw error;
-  }
-};
 
 // Generate 6-digit OTP code
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
-
-// Import SMS utility
-import { sendOTPCode } from '../utils/sms.js';
 
 // Send OTP via SMS
 const sendOTP = async (phone, code, isDevelopment = true) => {
@@ -117,29 +68,27 @@ router.post('/send-otp', async (req, res) => {
     });
   }
   
-  const data = loadOTPs();
-  
-  // Initialize otps array if not exists
-  if (!data.otps) {
-    data.otps = [];
-  }
-  
-  // Remove expired OTPs (cleanup)
   const now = Date.now();
-  const beforeCleanup = data.otps.length;
-  data.otps = data.otps.filter(otp => {
+  
+  // Get all OTPs for this phone
+  const allOTPs = await storage.find('otps', { phone });
+  
+  // Remove expired OTPs
+  const activeOTPs = allOTPs.filter(otp => {
     const expiresAt = new Date(otp.expiresAt).getTime();
     return expiresAt > now;
   });
   
-  // Save cleaned data if expired OTPs were removed
-  if (beforeCleanup !== data.otps.length) {
-    saveOTPs(data);
+  // Delete expired OTPs
+  for (const otp of allOTPs) {
+    const expiresAt = new Date(otp.expiresAt).getTime();
+    if (expiresAt <= now) {
+      await storage.delete('otps', { id: otp.id });
+    }
   }
   
   // Check if OTP was sent recently (rate limiting - max 1 per minute)
-  const recentOTP = data.otps.find(otp => 
-    otp.phone === phone && 
+  const recentOTP = activeOTPs.find(otp => 
     (now - new Date(otp.createdAt).getTime()) < 60000 // 1 minute
   );
   
@@ -170,9 +119,8 @@ router.post('/send-otp', async (req, res) => {
     ipAddress: req.ip || req.connection.remoteAddress
   };
   
-  // Save OTP to JSON file
-  data.otps.push(otp);
-  saveOTPs(data);
+  // Save OTP to database
+  await storage.insert('otps', otp);
   
   // Send OTP via SMS
   const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -211,7 +159,7 @@ router.post('/send-otp', async (req, res) => {
 });
 
 // ========== VERIFY OTP ==========
-router.post('/verify-otp', (req, res) => {
+router.post('/verify-otp', async (req, res) => {
   const { phone, code } = req.body;
   
   // Validation
@@ -226,12 +174,11 @@ router.post('/verify-otp', (req, res) => {
     });
   }
   
-  const data = loadOTPs();
   const now = Date.now();
   
   // Find OTP for this phone
-  const otp = data.otps.find(o => 
-    o.phone === phone && 
+  const allOTPs = await storage.find('otps', { phone });
+  const otp = allOTPs.find(o => 
     !o.verified &&
     new Date(o.expiresAt).getTime() > now
   );
@@ -267,8 +214,9 @@ router.post('/verify-otp', (req, res) => {
   
   // Verify code
   if (otp.code !== code) {
-    otp.attempts += 1;
-    saveOTPs(data);
+    await storage.update('otps', { id: otp.id }, {
+      attempts: otp.attempts + 1
+    });
     
     return res.status(400).json({
       success: false,
@@ -276,8 +224,8 @@ router.post('/verify-otp', (req, res) => {
       error: 'Invalid OTP code',
       message: 'Noto\'g\'ri tasdiqlash kodi',
       data: {
-        attempts: otp.attempts,
-        remainingAttempts: 5 - otp.attempts
+        attempts: otp.attempts + 1,
+        remainingAttempts: 5 - (otp.attempts + 1)
       },
       timestamp: new Date().toISOString(),
       version: '1.0.0'
@@ -285,9 +233,10 @@ router.post('/verify-otp', (req, res) => {
   }
   
   // Mark as verified
-  otp.verified = true;
-  otp.verifiedAt = new Date().toISOString();
-  saveOTPs(data);
+  await storage.update('otps', { id: otp.id }, {
+    verified: true,
+    verifiedAt: new Date().toISOString()
+  });
   
   res.json({
     success: true,
@@ -295,7 +244,7 @@ router.post('/verify-otp', (req, res) => {
     data: {
       phone: phone,
       verified: true,
-      verifiedAt: otp.verifiedAt
+      verifiedAt: new Date().toISOString()
     },
     message: 'Telefon raqam muvaffaqiyatli tasdiqlandi',
     links: {
@@ -308,14 +257,13 @@ router.post('/verify-otp', (req, res) => {
 });
 
 // ========== CHECK VERIFICATION STATUS ==========
-router.get('/status/:phone', (req, res) => {
+router.get('/status/:phone', async (req, res) => {
   const { phone } = req.params;
   
-  const data = loadOTPs();
   const now = Date.now();
   
   // Find latest OTP for this phone
-  const otps = data.otps.filter(o => o.phone === phone);
+  const otps = await storage.find('otps', { phone });
   const latestOTP = otps.sort((a, b) => 
     new Date(b.createdAt) - new Date(a.createdAt)
   )[0];

@@ -90,7 +90,7 @@ const loadPhones = () => {
 const savePhones = () => {
   try {
     // Ensure /tmp directory exists in Vercel
-    if (isVercel) {
+    if (isVercelEnv) {
       if (!fs.existsSync('/tmp')) {
         fs.mkdirSync('/tmp', { recursive: true });
       }
@@ -1008,24 +1008,6 @@ app.use('/api', modalsRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/alerts', alertsRoutes);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  
-  // Don't leak error details in production
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  res.status(err.status || 500).json({
-    success: false,
-    status: 'error',
-    error: err.name || 'Internal server error',
-    message: err.message || 'An unexpected error occurred',
-    ...(isDevelopment && { stack: err.stack }),
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
-});
-
 // 404 handler - Always return JSON response
 app.use((req, res) => {
   res.status(404).json({
@@ -1075,24 +1057,32 @@ app.use((req, res) => {
 });
 
 // Error handling middleware (after all routes)
-import { logError } from './utils/monitoring.js';
+app.use(async (err, req, res, next) => {
+  console.error('Error:', err);
+  
+  // Log error to Sentry (if available)
+  try {
+    const { logError } = await import('./utils/monitoring.js');
+    await logError(err, {
+      path: req.path,
+      method: req.method,
+      body: req.body,
+      query: req.query
+    });
+  } catch (error) {
+    // Sentry not available, just log to console
+    console.error('Error logging failed:', error);
+  }
 
-app.use((err, req, res, next) => {
-  // Log error to Sentry
-  logError(err, {
-    path: req.path,
-    method: req.method,
-    body: req.body,
-    query: req.query
-  });
-
+  // Don't leak error details in production
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
   res.status(err.status || 500).json({
     success: false,
     status: 'error',
-    error: process.env.NODE_ENV === 'production' 
-      ? 'Internal server error' 
-      : err.message,
-    message: 'Server xatosi yuz berdi',
+    error: isDevelopment ? (err.name || 'Internal server error') : 'Internal server error',
+    message: isDevelopment ? (err.message || 'An unexpected error occurred') : 'Server xatosi yuz berdi',
+    ...(isDevelopment && { stack: err.stack }),
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   });

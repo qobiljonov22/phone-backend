@@ -46,7 +46,9 @@ export const isAdmin = (req, res, next) => {
   authenticate(req, res, () => {
     // Load user to check role
     try {
-      const usersFile = 'users_database.json';
+      const isVercelEnv = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+      const usersFile = isVercelEnv ? '/tmp/users_database.json' : 'users_database.json';
+      
       if (fs.existsSync(usersFile)) {
         const data = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
         const users = new Map(Object.entries(data.users || {}));

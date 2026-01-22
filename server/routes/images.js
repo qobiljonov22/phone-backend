@@ -7,14 +7,14 @@ const router = express.Router();
 
 // Load phones database
 // In Vercel/serverless, use /tmp directory for file writes
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-const phonesFile = isVercel ? '/tmp/phones_database.json' : 'phones_database.json';
+const isVercelEnv = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const phonesFile = isVercelEnv ? '/tmp/phones_database.json' : 'phones_database.json';
 
 let phonesData = { phones: {} };
 try {
   if (fs.existsSync(phonesFile)) {
     phonesData = JSON.parse(fs.readFileSync(phonesFile, 'utf8'));
-  } else if (!isVercel && fs.existsSync('phones_database.json')) {
+  } else if (!isVercelEnv && fs.existsSync('phones_database.json')) {
     phonesData = JSON.parse(fs.readFileSync('phones_database.json', 'utf8'));
   }
 } catch (error) {
@@ -25,7 +25,7 @@ try {
 // Helper function to save data
 const saveData = () => {
   try {
-    if (isVercel && !fs.existsSync('/tmp')) {
+    if (isVercelEnv && !fs.existsSync('/tmp')) {
       fs.mkdirSync('/tmp', { recursive: true });
     }
     fs.writeFileSync(phonesFile, JSON.stringify(phonesData, null, 2));
@@ -35,7 +35,7 @@ const saveData = () => {
 };
 
 // Ensure uploads directory exists (only in non-serverless)
-const uploadsDir = isVercel ? '/tmp/uploads/phones' : 'uploads/phones';
+const uploadsDir = isVercelEnv ? '/tmp/uploads/phones' : 'uploads/phones';
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }

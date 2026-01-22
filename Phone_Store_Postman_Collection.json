@@ -14,79 +14,30 @@
 					"name": "Register",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"auth": {
+							"type": "noauth"
+						},
 						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
-								{
-									"key": "name",
-									"value": "",
-									"type": "text",
-									"description": "User's full name (required)"
-								},
-								{
-									"key": "email",
-									"value": "",
-									"type": "text",
-									"description": "Valid email address (required)"
-								},
-								{
-									"key": "password",
-									"value": "",
-									"type": "text",
-									"description": "Password - minimum 6 characters (required)"
-								},
-								{
-									"key": "phone",
-									"value": "",
-									"type": "text",
-									"description": "Phone number (optional) - format: +998901234567"
-								},
-								{
-									"key": "address[city]",
-									"value": "",
-									"type": "text",
-									"description": "City (optional)"
-								},
-								{
-									"key": "address[street]",
-									"value": "",
-									"type": "text",
-									"description": "Street address (optional)"
-								},
-								{
-									"key": "preferences[notifications]",
-									"value": "true",
-									"type": "text",
-									"description": "Enable notifications (optional)"
-								},
-								{
-									"key": "preferences[newsletter]",
-									"value": "false",
-									"type": "text",
-									"description": "Subscribe to newsletter (optional)"
-								},
-								{
-									"key": "preferences[currency]",
-									"value": "USD",
-									"type": "text",
-									"description": "Currency preference (optional)"
-								},
-								{
-									"key": "preferences[language]",
-									"value": "en",
-									"type": "text",
-									"description": "Language preference (optional)"
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"password\": \"\",\n  \"confirmPassword\": \"\",\n  \"phone\": \"\",\n  \"address\": {\n    \"city\": \"\",\n    \"street\": \"\"\n  },\n  \"preferences\": {\n    \"notifications\": true,\n    \"newsletter\": false,\n    \"currency\": \"USD\",\n    \"language\": \"en\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
 								}
-							],
-							"options": {}
+							}
 						},
 						"url": {
 							"raw": "{{base_url}}/api/auth/register",
 							"host": ["{{base_url}}"],
 							"path": ["api", "auth", "register"]
 						},
-						"description": "Register a new user account using x-www-form-urlencoded format.\n\n**Required fields:**\n- `name` - User's full name\n- `email` - Valid email address\n- `password` - Minimum 6 characters\n\n**Optional fields:**\n- `phone` - Phone number (format: +998901234567)\n- `address[city]` - City name\n- `address[street]` - Street address\n- `preferences[notifications]` - Enable notifications (true/false)\n- `preferences[newsletter]` - Subscribe to newsletter (true/false)\n- `preferences[currency]` - Currency preference (USD, UZS, etc.)\n- `preferences[language]` - Language preference (en, uz, ru)\n\n**Note:** Make sure to fill in `name`, `email`, and `password` fields before sending the request.\n\n**Alternative:** You can also use JSON format by changing Body mode to 'raw' and selecting 'JSON'."
+						"description": "Register a new user account using JSON format.\n\n**⚠️ MUHIM:**\n1. **Authorization header BO'LMASLIGI KERAK!** - Authorization tab'da **No Auth** tanlang\n2. **Har bir client o'z ma'lumotlarini kirishi kerak!**\n3. **Parol 2 marta kiritilishi kerak!** - Birinchi yangi parol, keyin tasdiqlash paroli\n\n**Required fields (Majburiy):**\n- `name` - O'z ismingizni kiriting\n- `email` - O'z email manzilingizni kiriting\n- `password` - O'z parolingizni kiriting (kamida 6 belgi)\n- `confirmPassword` - Parolni qayta kiriting (password bilan bir xil bo'lishi kerak)\n\n**Optional fields (Ixtiyoriy):**\n- `phone` - O'z telefon raqamingiz (format: +998901234567)\n- `address` - Object with `city` and `street`\n- `preferences` - Object with `notifications`, `newsletter`, `currency`, `language`\n\n**Misol (Example):**\n```json\n{\n  \"name\": \"O'z ismingiz\",\n  \"email\": \"o'z-email@example.com\",\n  \"password\": \"o'z-parolingiz\",\n  \"confirmPassword\": \"o'z-parolingiz\",\n  \"phone\": \"+998901234567\",\n  \"address\": {\n    \"city\": \"Tashkent\",\n    \"street\": \"Main Street\"\n  },\n  \"preferences\": {\n    \"notifications\": true,\n    \"newsletter\": false,\n    \"currency\": \"USD\",\n    \"language\": \"en\"\n  }\n}\n```\n\n**Eslatma:**\n- Body'da o'z ma'lumotlaringizni kiriting, misol emas!\n- **`password` va `confirmPassword` bir xil bo'lishi kerak!**\n- **Authorization header bo'lmasligi kerak** - Agar 401 bo'lsa, Authorization tab'da **No Auth** tanlang!"
 					},
 					"response": [
 						{
@@ -101,7 +52,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"password\": \"\"\n}"
+									"raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"password\": \"\",\n  \"confirmPassword\": \"\"\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/api/auth/register",
@@ -151,10 +102,21 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"success\": false,\n  \"status\": \"validation_error\",\n  \"error\": \"Name, email and password are required\",\n  \"message\": \"Ism, email va parol kiritilishi shart\",\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
+							"body": "{\n  \"success\": false,\n  \"status\": \"validation_error\",\n  \"error\": \"Name, email, password and confirmPassword are required\",\n  \"message\": \"Ism, email, parol va parol tasdiqlash kiritilishi shart\",\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
 						}
 					],
 					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Remove Authorization header for Register endpoint",
+									"pm.request.headers.remove('Authorization');",
+									"console.log('✅ Authorization header removed for Register');"
+								],
+								"type": "text/javascript"
+							}
+						},
 						{
 							"listen": "test",
 							"script": {
@@ -176,7 +138,7 @@
 									"    if (jsonData.data && jsonData.data.token) {",
 									"        pm.environment.set('auth_token', jsonData.data.token);",
 									"        pm.environment.set('user_id', jsonData.data.user.userId);",
-									"        console.log('✅ Token saved:', jsonData.data.token.substring(0, 20) + '...');",
+									"        console.log('✅ Token saved:', jsonData.data.token);",
 									"        console.log('✅ User ID saved:', jsonData.data.user.userId);",
 									"    }",
 									"}"
@@ -196,6 +158,9 @@
 								"value": "application/json"
 							}
 						],
+						"auth": {
+							"type": "noauth"
+						},
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"email\": \"\",\n  \"password\": \"\"\n}",
@@ -210,8 +175,51 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "auth", "login"]
 						},
-						"description": "Login with email and password"
-					}
+						"description": "Login with email and password to get JWT token.\n\n**⚠️ MUHIM:**\n- **Authorization header BO'LMASLIGI KERAK!** - Authorization tab'da **No Auth** tanlang\n- Body'da o'z email va parolingizni kiriting\n- Token avtomatik saqlanadi (`auth_token`)"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Remove Authorization header for Login endpoint",
+									"pm.request.headers.remove('Authorization');",
+									"console.log('✅ Authorization header removed for Login');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"User logged in successfully\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.data).to.have.property('user');",
+									"    pm.expect(jsonData.data).to.have.property('token');",
+									"});",
+									"",
+									"// Save token to environment",
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set('auth_token', jsonData.data.token);",
+									"        pm.environment.set('user_id', jsonData.data.user.userId);",
+									"        console.log('✅ Token saved:', jsonData.data.token);",
+									"        console.log('✅ User ID saved:', jsonData.data.user.userId);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
 				},
 				{
 					"name": "Get Current User (Me)",
@@ -381,24 +389,20 @@
 					"name": "Verify OTP",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
-								{
-									"key": "phone",
-									"value": "{{test_phone}}",
-									"type": "text",
-									"description": "Phone number (required)"
-								},
-								{
-									"key": "code",
-									"value": "{{otp_code}}",
-									"type": "text",
-									"description": "OTP code (required) - auto-filled from Send OTP response"
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"{{test_phone}}\",\n  \"code\": \"{{otp_code}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
 								}
-							],
-							"options": {}
+							}
 						},
 						"url": {
 							"raw": "{{base_url}}/api/verification/verify-otp",
@@ -870,18 +874,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/users/email/:email",
+							"raw": "{{base_url}}/api/users/email/{{email}}",
 							"host": ["{{base_url}}"],
-							"path": ["api", "users", "email", ":email"],
-							"variable": [
-								{
-									"key": "email",
-									"value": "test@example.com",
-									"description": "Email address of user to delete"
-								}
-							]
+							"path": ["api", "users", "email", "{{email}}"]
 						},
-						"description": "Delete user by email address. Useful for testing/development when you need to remove a user to test registration again."
+						"description": "Delete user by email address. Useful for testing/development when you need to remove a user to test registration again.\n\n**Usage:** Replace `{{email}}` with the email address you want to delete, or set `email` variable in environment.\n\n**Example:** `{{base_url}}/api/users/email/test@example.com`"
 					},
 					"response": []
 				},
@@ -1605,6 +1602,12 @@
 			"value": "",
 			"type": "string",
 			"description": "JWT token from login/register response"
+		},
+		{
+			"key": "email",
+			"value": "",
+			"type": "string",
+			"description": "Email address for delete user by email endpoint"
 		}
 	]
 }

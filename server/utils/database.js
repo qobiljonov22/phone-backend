@@ -69,11 +69,14 @@ export const query = async (text, params) => {
 
 // ========== INITIALIZE ==========
 export const initializeDatabase = async () => {
+  // Initialize storage (database or in-memory)
+  const { initializeStorage } = await import('./storage.js');
+  await initializeStorage();
+  
+  // Also initialize legacy database connections for backward compatibility
   if (process.env.MONGODB_URI) {
     await connectMongoDB();
   } else if (process.env.DATABASE_URL) {
     await connectPostgreSQL();
-  } else {
-    console.log('ℹ️  No database configured - using file-based storage');
   }
 };

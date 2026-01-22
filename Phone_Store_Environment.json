@@ -40,6 +40,13 @@
 			"description": "O'z email'ingizni kiriting"
 		},
 		{
+			"key": "email",
+			"value": "",
+			"type": "default",
+			"enabled": true,
+			"description": "Email address for delete user by email endpoint"
+		},
+		{
 			"key": "test_phone",
 			"value": "",
 			"type": "default",

@@ -1,36 +1,11 @@
 // Price and stock alerts functionality
 import express from 'express';
-import fs from 'fs';
+import { storage } from '../utils/storage.js';
 
 const router = express.Router();
 
-// In Vercel/serverless, use /tmp directory for file writes
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-const alertsFile = isVercel ? '/tmp/alerts_database.json' : 'alerts_database.json';
-
-// Load alerts
-const loadAlerts = () => {
-  try {
-    if (fs.existsSync(alertsFile)) {
-      return JSON.parse(fs.readFileSync(alertsFile, 'utf8'));
-  }
-  } catch (error) {
-    console.error('Error loading alerts:', error);
-  }
-  return { alerts: [], counter: 1 };
-};
-
-// Save alerts
-const saveAlerts = (data) => {
-  try {
-    fs.writeFileSync(alertsFile, JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error('Error saving alerts:', error);
-  }
-};
-
 // Create price alert
-router.post('/price', (req, res) => {
+router.post('/price', async (req, res) => {
   const { phoneId, email, phone, targetPrice } = req.body;
   
   if (!phoneId || !targetPrice) {
@@ -55,7 +30,6 @@ router.post('/price', (req, res) => {
     });
   }
   
-  const data = loadAlerts();
   const alertId = `price_alert_${Date.now()}`;
   
   const alert = {
@@ -70,9 +44,7 @@ router.post('/price', (req, res) => {
     notifiedAt: null
   };
   
-  data.alerts.push(alert);
-  data.counter = (data.counter || 0) + 1;
-  saveAlerts(data);
+  await storage.insert('alerts', alert);
   
   res.status(201).json({
     success: true,
@@ -102,7 +74,7 @@ router.post('/price', (req, res) => {
 });
 
 // Create stock alert
-router.post('/stock', (req, res) => {
+router.post('/stock', async (req, res) => {
   const { phoneId, email, phone } = req.body;
   
   if (!phoneId) {
@@ -127,7 +99,6 @@ router.post('/stock', (req, res) => {
     });
   }
   
-  const data = loadAlerts();
   const alertId = `stock_alert_${Date.now()}`;
   
   const alert = {
@@ -141,9 +112,7 @@ router.post('/stock', (req, res) => {
     notifiedAt: null
   };
   
-  data.alerts.push(alert);
-  data.counter = (data.counter || 0) + 1;
-  saveAlerts(data);
+  await storage.insert('alerts', alert);
   
   res.status(201).json({
     success: true,
@@ -171,7 +140,7 @@ router.post('/stock', (req, res) => {
 });
 
 // Get user alerts
-router.get('/user', (req, res) => {
+router.get('/user', async (req, res) => {
   const { email, phone } = req.query;
   
   if (!email && !phone) {
@@ -185,13 +154,11 @@ router.get('/user', (req, res) => {
     });
   }
   
-  const data = loadAlerts();
-  let alerts = data.alerts || [];
-  
+  let alerts = [];
   if (email) {
-    alerts = alerts.filter(a => a.email.toLowerCase() === email.toLowerCase());
+    alerts = await storage.find('alerts', { email: email.toLowerCase() });
   } else if (phone) {
-    alerts = alerts.filter(a => a.phone === phone);
+    alerts = await storage.find('alerts', { phone });
   }
   
   res.json({
@@ -215,13 +182,12 @@ router.get('/user', (req, res) => {
 });
 
 // Delete alert
-router.delete('/:alertId', (req, res) => {
+router.delete('/:alertId', async (req, res) => {
   const { alertId } = req.params;
   
-  const data = loadAlerts();
-  const alertIndex = data.alerts.findIndex(a => a.id === alertId);
+  const alert = await storage.findOne('alerts', { id: alertId });
   
-  if (alertIndex === -1) {
+  if (!alert) {
     return res.status(404).json({
       success: false,
       status: 'not_found',
@@ -232,18 +198,16 @@ router.delete('/:alertId', (req, res) => {
     });
   }
   
-  const deletedAlert = data.alerts[alertIndex];
-  data.alerts.splice(alertIndex, 1);
-  saveAlerts(data);
+  await storage.delete('alerts', { id: alertId });
   
   res.json({
     success: true,
     status: 'deleted',
     data: {
       deletedAlert: {
-        id: deletedAlert.id,
-        phoneId: deletedAlert.phoneId,
-        type: deletedAlert.type
+        id: alert.id,
+        phoneId: alert.phoneId,
+        type: alert.type
       }
     },
     message: 'Xabarnoma o\'chirildi',
@@ -257,11 +221,10 @@ router.delete('/:alertId', (req, res) => {
 });
 
 // Get all alerts (admin)
-router.get('/', (req, res) => {
-  const data = loadAlerts();
+router.get('/', async (req, res) => {
   const { type, status } = req.query;
   
-  let alerts = data.alerts || [];
+  let alerts = await storage.find('alerts');
   
   if (type) {
     alerts = alerts.filter(a => a.type === type);
