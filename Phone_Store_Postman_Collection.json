@@ -549,25 +549,58 @@
 					"request": {
 						"method": "GET",
 						"header": [],
+						"auth": {
+							"type": "noauth"
+						},
 						"url": {
 							"raw": "{{base_url}}/api",
 							"host": ["{{base_url}}"],
 							"path": ["api"]
 						},
-						"description": "Get complete API information with all available endpoints"
-					}
+						"description": "Get complete API information with all available endpoints. **Public endpoint** - no authentication required."
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Remove Authorization header for public endpoint",
+									"pm.request.headers.remove('Authorization');",
+									"console.log('✅ Authorization header removed for Get API Info');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
 				},
 				{
 					"name": "Health Check",
 					"request": {
 						"method": "GET",
 						"header": [],
+						"auth": {
+							"type": "noauth"
+						},
 						"url": {
 							"raw": "{{base_url}}/api/health",
 							"host": ["{{base_url}}"],
 							"path": ["api", "health"]
+						},
+						"description": "Server health check. **Public endpoint** - no authentication required."
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Remove Authorization header for public endpoint",
+									"pm.request.headers.remove('Authorization');",
+									"console.log('✅ Authorization header removed for Health Check');"
+								],
+								"type": "text/javascript"
+							}
 						}
-					}
+					]
 				}
 			]
 		},
@@ -579,6 +612,9 @@
 					"request": {
 						"method": "GET",
 						"header": [],
+						"auth": {
+							"type": "noauth"
+						},
 						"url": {
 							"raw": "{{base_url}}/api/phones?page=1&limit=10&brand=&minPrice=&maxPrice=&sort=",
 							"host": ["{{base_url}}"],
@@ -591,20 +627,51 @@
 								{"key": "maxPrice", "value": "", "description": "Max price in so'm"},
 								{"key": "sort", "value": "", "description": "Sort: price_asc, price_desc, name"}
 							]
+						},
+						"description": "Get all phones with pagination and filters. **Public endpoint** - no authentication required."
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Remove Authorization header for public endpoint",
+									"pm.request.headers.remove('Authorization');",
+									"console.log('✅ Authorization header removed for Get All Phones');"
+								],
+								"type": "text/javascript"
+							}
 						}
-					}
+					]
 				},
 				{
 					"name": "Get Phone by ID",
 					"request": {
 						"method": "GET",
 						"header": [],
+						"auth": {
+							"type": "noauth"
+						},
 						"url": {
 							"raw": "{{base_url}}/api/phones/{{phone_id}}",
 							"host": ["{{base_url}}"],
 							"path": ["api", "phones", "{{phone_id}}"]
+						},
+						"description": "Get phone details by ID. **Public endpoint** - no authentication required."
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Remove Authorization header for public endpoint",
+									"pm.request.headers.remove('Authorization');",
+									"console.log('✅ Authorization header removed for Get Phone by ID');"
+								],
+								"type": "text/javascript"
+							}
 						}
-					}
+					]
 				},
 				{
 					"name": "Create Phone",
@@ -691,6 +758,9 @@
 					"request": {
 						"method": "GET",
 						"header": [],
+						"auth": {
+							"type": "noauth"
+						},
 						"url": {
 							"raw": "{{base_url}}/api/search?q=iphone&page=1&limit=10",
 							"host": ["{{base_url}}"],
@@ -700,14 +770,31 @@
 								{"key": "page", "value": "1"},
 								{"key": "limit", "value": "10"}
 							]
+						},
+						"description": "Search phones. **Public endpoint** - no authentication required."
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Remove Authorization header for public endpoint",
+									"pm.request.headers.remove('Authorization');",
+									"console.log('✅ Authorization header removed for Search Phones');"
+								],
+								"type": "text/javascript"
+							}
 						}
-					}
+					]
 				},
 				{
 					"name": "Get Featured Phones",
 					"request": {
 						"method": "GET",
 						"header": [],
+						"auth": {
+							"type": "noauth"
+						},
 						"url": {
 							"raw": "{{base_url}}/api/featured?limit=5",
 							"host": ["{{base_url}}"],
@@ -715,32 +802,80 @@
 							"query": [
 								{"key": "limit", "value": "5"}
 							]
+						},
+						"description": "Get featured phones. **Public endpoint** - no authentication required."
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Remove Authorization header for public endpoint",
+									"pm.request.headers.remove('Authorization');",
+									"console.log('✅ Authorization header removed for Get Featured Phones');"
+								],
+								"type": "text/javascript"
+							}
 						}
-					}
+					]
 				},
 				{
 					"name": "Get Brands",
 					"request": {
 						"method": "GET",
 						"header": [],
+						"auth": {
+							"type": "noauth"
+						},
 						"url": {
 							"raw": "{{base_url}}/api/brands",
 							"host": ["{{base_url}}"],
 							"path": ["api", "brands"]
+						},
+						"description": "Get brands. **Public endpoint** - no authentication required."
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Remove Authorization header for public endpoint",
+									"pm.request.headers.remove('Authorization');",
+									"console.log('✅ Authorization header removed for Get Brands');"
+								],
+								"type": "text/javascript"
+							}
 						}
-					}
+					]
 				},
 				{
 					"name": "Get Filter Options",
 					"request": {
 						"method": "GET",
 						"header": [],
+						"auth": {
+							"type": "noauth"
+						},
 						"url": {
 							"raw": "{{base_url}}/api/filters/options",
 							"host": ["{{base_url}}"],
 							"path": ["api", "filters", "options"]
+						},
+						"description": "Get filter options. **Public endpoint** - no authentication required."
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Remove Authorization header for public endpoint",
+									"pm.request.headers.remove('Authorization');",
+									"console.log('✅ Authorization header removed for Get Filter Options');"
+								],
+								"type": "text/javascript"
+							}
 						}
-					}
+					]
 				}
 			]
 		},
