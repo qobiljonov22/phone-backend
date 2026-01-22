@@ -455,4 +455,97 @@ router.get('/', (req, res) => {
   });
 });
 
+// Delete user by email (for testing/development)
+router.delete('/email/:email', (req, res) => {
+  const { email } = req.params;
+  
+  // Reload users to get latest data
+  loadUsers();
+  
+  // Find user by email
+  const userToDelete = Array.from(users.values()).find(
+    u => u.email.toLowerCase() === email.toLowerCase()
+  );
+  
+  if (!userToDelete) {
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'User not found',
+      message: `Email "${email}" bilan foydalanuvchi topilmadi`,
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
+  }
+  
+  // Delete user
+  users.delete(userToDelete.userId);
+  saveUsers();
+  
+  res.json({
+    success: true,
+    status: 'deleted',
+    data: {
+      deletedUser: {
+        userId: userToDelete.userId,
+        email: userToDelete.email,
+        name: userToDelete.name
+      },
+      deletedAt: new Date().toISOString()
+    },
+    message: `Foydalanuvchi "${email}" muvaffaqiyatli o'chirildi`,
+    links: {
+      list: `${req.protocol}://${req.get('host')}/api/users`,
+      register: `${req.protocol}://${req.get('host')}/api/auth/register`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
+// Delete user by userId
+router.delete('/:userId', (req, res) => {
+  const { userId } = req.params;
+  
+  // Reload users to get latest data
+  loadUsers();
+  
+  const user = users.get(userId);
+  
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      status: 'not_found',
+      error: 'User not found',
+      message: 'Foydalanuvchi topilmadi',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
+  }
+  
+  // Delete user
+  users.delete(userId);
+  saveUsers();
+  
+  res.json({
+    success: true,
+    status: 'deleted',
+    data: {
+      deletedUser: {
+        userId: user.userId,
+        email: user.email,
+        name: user.name
+      },
+      deletedAt: new Date().toISOString()
+    },
+    message: 'Foydalanuvchi muvaffaqiyatli o\'chirildi',
+    links: {
+      list: `${req.protocol}://${req.get('host')}/api/users`,
+      register: `${req.protocol}://${req.get('host')}/api/auth/register`
+    },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
 export default router;

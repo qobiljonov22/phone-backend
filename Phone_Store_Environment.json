@@ -4,7 +4,7 @@
 	"values": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:3001",
+			"value": "https://phone-backend-fkezys5on-qobiljonovumidjon22s-projects.vercel.app",
 			"type": "default",
 			"enabled": true
 		},

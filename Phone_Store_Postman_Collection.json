@@ -2,9 +2,9 @@
 	"info": {
 		"_postman_id": "phone-store-api-2024",
 		"name": "Phone Store API - Complete Collection",
-		"description": "Professional Phone E-commerce Backend API Collection with all endpoints",
+		"description": "Professional Phone E-commerce Backend API Collection with all endpoints\n\n**Deployment URL:** https://phone-backend-fkezys5on-qobiljonovumidjon22s-projects.vercel.app\n\n**Environment Variables:**\n- `base_url` - API base URL (set in Environment)\n- `auth_token` - JWT token (auto-saved from login/register)\n- `user_id` - User ID (auto-saved from login/register)\n- `test_phone` - Phone number for OTP testing\n- `otp_code` - OTP code (auto-saved in development mode)\n\n**Setup:**\n1. Import `Phone_Store_Environment.json`\n2. Set `base_url` to your deployment URL\n3. Start testing!",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"version": "1.0.0"
+		"version": "1.1.0"
 	},
 	"item": [
 		{
@@ -329,7 +329,7 @@
 									}
 								],
 								"cookie": [],
-								"body": "{\n  \"success\": true,\n  \"status\": \"sent\",\n  \"data\": {\n    \"phone\": \"+998901234567\",\n    \"code\": \"123456\",\n    \"expiresIn\": \"5 minutes\",\n    \"message\": \"OTP code sent successfully\",\n    \"note\": \"Development mode: Code shown in response. In production, code will be sent via SMS only.\"\n  },\n  \"message\": \"Tasdiqlash kodi telefon raqamingizga yuborildi. Kod 5 daqiqa davomida amal qiladi.\",\n  \"links\": {\n    \"verify\": \"http://localhost:3001/api/verification/verify-otp\",\n    \"resend\": \"http://localhost:3001/api/verification/send-otp\"\n  },\n  \"meta\": {\n    \"mode\": \"development\",\n    \"expiresAt\": \"2024-01-01T12:05:00.000Z\",\n    \"sentAt\": \"2024-01-01T12:00:00.000Z\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
+								"body": "{\n  \"success\": true,\n  \"status\": \"sent\",\n  \"data\": {\n    \"phone\": \"+998901234567\",\n    \"code\": \"123456\",\n    \"expiresIn\": \"5 minutes\",\n    \"message\": \"OTP code sent successfully\",\n    \"note\": \"Development mode: Code shown in response. In production, code will be sent via SMS only.\"\n  },\n  \"message\": \"Tasdiqlash kodi telefon raqamingizga yuborildi. Kod 5 daqiqa davomida amal qiladi.\",\n  \"links\": {\n    \"verify\": \"{{base_url}}/api/verification/verify-otp\",\n    \"resend\": \"{{base_url}}/api/verification/send-otp\"\n  },\n  \"meta\": {\n    \"mode\": \"development\",\n    \"expiresAt\": \"2024-01-01T12:05:00.000Z\",\n    \"sentAt\": \"2024-01-01T12:00:00.000Z\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
 							}
 						],
 						"event": [
@@ -381,27 +381,31 @@
 					"name": "Verify OTP",
 					"request": {
 						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
+						"header": [],
 						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"phone\": \"{{test_phone}}\",\n  \"code\": \"{{otp_code}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "phone",
+									"value": "{{test_phone}}",
+									"type": "text",
+									"description": "Phone number (required)"
+								},
+								{
+									"key": "code",
+									"value": "{{otp_code}}",
+									"type": "text",
+									"description": "OTP code (required) - auto-filled from Send OTP response"
 								}
-							}
+							],
+							"options": {}
 						},
 						"url": {
 							"raw": "{{base_url}}/api/verification/verify-otp",
 							"host": ["{{base_url}}"],
 							"path": ["api", "verification", "verify-otp"]
 						},
-						"description": "Verify OTP code sent to phone number. Phone and code are automatically filled from environment variables (set by Send OTP request). You can also manually enter phone and code.",
+						"description": "Verify OTP code sent to phone number.\n\n**Note:** Phone and code are automatically filled from environment variables (set by Send OTP request). You can also manually enter phone and code.",
 						"response": [
 							{
 								"name": "Success Response",
@@ -433,7 +437,7 @@
 									}
 								],
 								"cookie": [],
-								"body": "{\n  \"success\": true,\n  \"status\": \"verified\",\n  \"data\": {\n    \"phone\": \"+998901234567\",\n    \"verified\": true,\n    \"verifiedAt\": \"2024-01-01T12:00:00.000Z\"\n  },\n  \"message\": \"Telefon raqam muvaffaqiyatli tasdiqlandi\",\n  \"links\": {\n    \"register\": \"http://localhost:3001/api/auth/register\",\n    \"login\": \"http://localhost:3001/api/auth/login\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
+								"body": "{\n  \"success\": true,\n  \"status\": \"verified\",\n  \"data\": {\n    \"phone\": \"+998901234567\",\n    \"verified\": true,\n    \"verifiedAt\": \"2024-01-01T12:00:00.000Z\"\n  },\n  \"message\": \"Telefon raqam muvaffaqiyatli tasdiqlandi\",\n  \"links\": {\n    \"register\": \"{{base_url}}/api/auth/register\",\n    \"login\": \"{{base_url}}/api/auth/login\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
 							}
 						],
 						"event": [
@@ -859,6 +863,41 @@
 							"path": ["api", "users", "{{user_id}}", "wishlist", "{{phone_id}}"]
 						}
 					}
+				},
+				{
+					"name": "Delete User by Email",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/email/:email",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "email", ":email"],
+							"variable": [
+								{
+									"key": "email",
+									"value": "test@example.com",
+									"description": "Email address of user to delete"
+								}
+							]
+						},
+						"description": "Delete user by email address. Useful for testing/development when you need to remove a user to test registration again."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User by ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}"]
+						},
+						"description": "Delete user by user ID."
+					},
+					"response": []
 				}
 			]
 		},
@@ -1537,8 +1576,9 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:3001",
-			"type": "string"
+			"value": "https://phone-backend-fkezys5on-qobiljonovumidjon22s-projects.vercel.app",
+			"type": "string",
+			"description": "API base URL - Update this in Environment for local development"
 		},
 		{
 			"key": "user_id",
