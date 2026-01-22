@@ -7,13 +7,27 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Initialize Sentry (if configured)
-import { initSentry } from './utils/monitoring.js';
-await initSentry();
+// Initialize Sentry and Database (async)
+let initPromise = null;
+const initializeServices = async () => {
+  if (initPromise) return initPromise;
+  
+  initPromise = (async () => {
+    try {
+      // Initialize Sentry (if configured)
+      const { initSentry } = await import('./utils/monitoring.js');
+      await initSentry();
 
-// Initialize Database (if configured)
-import { initializeDatabase } from './utils/database.js';
-await initializeDatabase();
+      // Initialize Database (if configured)
+      const { initializeDatabase } = await import('./utils/database.js');
+      await initializeDatabase();
+    } catch (error) {
+      console.error('Initialization error:', error);
+    }
+  })();
+  
+  return initPromise;
+};
 
 // ES6 __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -50,8 +64,8 @@ dotenv.config();
 
 // Load phones database
 // In Vercel/serverless, use /tmp directory for file writes
-const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-const phonesFile = isVercel ? '/tmp/phones_database.json' : 'phones_database.json';
+const isVercelEnv = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const phonesFile = isVercelEnv ? '/tmp/phones_database.json' : 'phones_database.json';
 let phonesData = { phones: {} };
 
 // Load phones from file
@@ -62,7 +76,7 @@ const loadPhones = () => {
     } else {
       // Try to load from root if /tmp doesn't exist (for local dev)
       const rootFile = 'phones_database.json';
-      if (fs.existsSync(rootFile) && !isVercel) {
+      if (fs.existsSync(rootFile) && !isVercelEnv) {
         phonesData = JSON.parse(fs.readFileSync(rootFile, 'utf8'));
       }
     }
@@ -92,8 +106,10 @@ const savePhones = () => {
 loadPhones();
 
 const app = express();
-const server = createServer(app);
 const PORT = process.env.PORT || 3001;
+
+// Create HTTP server (only for local development with WebSocket)
+const server = isVercelEnv ? null : createServer(app);
 
 // Middleware
 app.use(cors({
@@ -123,71 +139,80 @@ app.use('/uploads', express.static('uploads')); // Serve uploaded images
 // API key validation (optional)
 app.use('/api', validateApiKey);
 
-// WebSocket Server
-const wss = new WebSocketServer({ server });
-
-// Store connected clients
+// WebSocket Server (only for local development)
+let wss = null;
 const clients = new Map();
 
-wss.on('connection', (ws, req) => {
-  const clientId = Date.now().toString();
-  clients.set(clientId, ws);
-  
-  console.log(`New WebSocket connection: ${clientId}`);
-  
-  // Send welcome message
-  ws.send(JSON.stringify({
-    type: 'connection',
-    message: 'Connected to Phone Backend WebSocket',
-    clientId,
-    timestamp: new Date().toISOString()
-  }));
-  
-  // Handle incoming messages
-  ws.on('message', (data) => {
-    try {
-      const message = JSON.parse(data.toString());
-      console.log('Received message:', message);
-      
-      // Broadcast message to all clients
-      const broadcastMessage = {
-        type: 'message',
-        clientId,
-        data: message,
-        timestamp: new Date().toISOString()
-      };
-      
-      // Send to all connected clients
-      clients.forEach((client, id) => {
-        if (client.readyState === client.OPEN) {
-          client.send(JSON.stringify(broadcastMessage));
-        }
-      });
-      
-    } catch (error) {
-      console.error('Error parsing message:', error);
-      ws.send(JSON.stringify({
-        type: 'error',
-        message: 'Invalid message format'
-      }));
-    }
+if (!isVercelEnv && server) {
+  wss = new WebSocketServer({ server });
+
+  wss.on('connection', (ws, req) => {
+    const clientId = Date.now().toString();
+    clients.set(clientId, ws);
+    
+    console.log(`New WebSocket connection: ${clientId}`);
+    
+    // Send welcome message
+    ws.send(JSON.stringify({
+      type: 'connection',
+      message: 'Connected to Phone Backend WebSocket',
+      clientId,
+      timestamp: new Date().toISOString()
+    }));
+    
+    // Handle incoming messages
+    ws.on('message', (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        console.log('Received message:', message);
+        
+        // Broadcast message to all clients
+        const broadcastMessage = {
+          type: 'message',
+          clientId,
+          data: message,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Send to all connected clients
+        clients.forEach((client, id) => {
+          if (client.readyState === client.OPEN) {
+            client.send(JSON.stringify(broadcastMessage));
+          }
+        });
+        
+      } catch (error) {
+        console.error('Error parsing message:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Invalid message format'
+        }));
+      }
+    });
+    
+    // Handle client disconnect
+    ws.on('close', () => {
+      clients.delete(clientId);
+      console.log(`Client disconnected: ${clientId}`);
+    });
+    
+    // Handle errors
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      clients.delete(clientId);
+    });
   });
-  
-  // Handle client disconnect
-  ws.on('close', () => {
-    clients.delete(clientId);
-    console.log(`Client disconnected: ${clientId}`);
-  });
-  
-  // Handle errors
-  ws.on('error', (error) => {
-    console.error('WebSocket error:', error);
-    clients.delete(clientId);
-  });
-});
+} else {
+  console.log('WebSocket disabled in Vercel/serverless environment');
+}
 
 // Helper function to broadcast to all WebSocket clients
 const broadcast = (data) => {
+  if (isVercelEnv || !wss) {
+    // In serverless, WebSocket is not available
+    return;
+  }
+  
   const message = JSON.stringify({
     type: 'broadcast',
     data,
@@ -311,7 +336,12 @@ app.get('/api', (req, res) => {
       },
       broadcast: 'POST /api/broadcast'
     },
-      websocket: {
+      websocket: isVercelEnv ? {
+        url: null,
+        status: 'disabled',
+        connected: 0,
+        note: 'WebSocket is not available in Vercel serverless environment'
+      } : {
         url: `ws://${req.get('host')}`,
         status: 'active',
         connected: clients.size
@@ -332,7 +362,7 @@ app.get('/api', (req, res) => {
       self: baseUrl,
       health: `${baseUrl}/health`,
       docs: `${req.protocol}://${req.get('host')}/demo`,
-      websocket: `ws://${req.get('host')}`
+      websocket: isVercelEnv ? null : `ws://${req.get('host')}`
     },
     timestamp: new Date().toISOString(),
     version: '1.0.0'
@@ -361,7 +391,12 @@ app.get('/api/health', (req, res) => {
         port: PORT,
         nodeVersion: process.version
       },
-      websocket: {
+      websocket: isVercelEnv ? {
+        connected: 0,
+        status: 'disabled',
+        url: null,
+        note: 'WebSocket not available in serverless'
+      } : {
         connected: clients.size,
         status: 'active',
         url: `ws://localhost:${PORT}`
@@ -1063,10 +1098,23 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-server.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-  console.log(`WebSocket server ready at ws://localhost:${PORT}`);
-  console.log(`API available at http://localhost:${PORT}/api`);
-  console.log(`Demo page at http://localhost:${PORT}`);
-});
+// Initialize services (async)
+initializeServices().catch(console.error);
+
+// Vercel serverless: export app (required for Vercel)
+// This works for both Vercel and local development
+export default app;
+
+// Local development: start server (only if not in Vercel)
+if (!isVercelEnv) {
+  // Local development mode - start server
+  server.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+    console.log(`WebSocket server ready at ws://localhost:${PORT}`);
+    console.log(`API available at http://localhost:${PORT}/api`);
+    console.log(`Demo page at http://localhost:${PORT}`);
+  });
+} else {
+  // Vercel mode - app is exported, Vercel will handle requests
+  console.log('Vercel serverless mode - app exported');
+}
