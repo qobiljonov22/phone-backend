@@ -26,6 +26,12 @@
     "multer": "^1.4.5-lts.1",
     "ws": "^8.18.0"
   },
+  "optionalDependencies": {
+    "@sentry/node": "^7.120.4",
+    "mongodb": "^6.21.0",
+    "pg": "^8.17.2",
+    "twilio": "^4.23.0"
+  },
   "devDependencies": {
     "cross-env": "^7.0.3"
   }

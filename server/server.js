@@ -7,6 +7,14 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Initialize Sentry (if configured)
+import { initSentry } from './utils/monitoring.js';
+await initSentry();
+
+// Initialize Database (if configured)
+import { initializeDatabase } from './utils/database.js';
+await initializeDatabase();
+
 // ES6 __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1026,6 +1034,30 @@ app.use((req, res) => {
       suggestion: 'Check /api endpoint for available routes',
       timestamp: new Date().toISOString()
     },
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
+// Error handling middleware (after all routes)
+import { logError } from './utils/monitoring.js';
+
+app.use((err, req, res, next) => {
+  // Log error to Sentry
+  logError(err, {
+    path: req.path,
+    method: req.method,
+    body: req.body,
+    query: req.query
+  });
+
+  res.status(err.status || 500).json({
+    success: false,
+    status: 'error',
+    error: process.env.NODE_ENV === 'production' 
+      ? 'Internal server error' 
+      : err.message,
+    message: 'Server xatosi yuz berdi',
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   });

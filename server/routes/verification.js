@@ -57,6 +57,9 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// Import SMS utility
+import { sendOTPCode } from '../utils/sms.js';
+
 // Send OTP via SMS
 const sendOTP = async (phone, code, isDevelopment = true) => {
   try {
@@ -68,25 +71,16 @@ const sendOTP = async (phone, code, isDevelopment = true) => {
       // In development, also return the code so client can see it
       return { success: true, code: code, mode: 'development' };
     } else {
-      // Production mode: Send real SMS
-      // Example with Twilio (uncomment and configure):
-      /*
-      const accountSid = process.env.TWILIO_ACCOUNT_SID;
-      const authToken = process.env.TWILIO_AUTH_TOKEN;
-      const client = require('twilio')(accountSid, authToken);
+      // Production mode: Send real SMS via utility
+      const result = await sendOTPCode(phone, code);
       
-      const message = await client.messages.create({
-        body: `Your verification code is: ${code}. Valid for 5 minutes.`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: phone
-      });
-      
-      return { success: true, messageId: message.sid, mode: 'production' };
-      */
-      
-      // For now, log in production too (replace with real SMS service)
-      console.log(`📱 [PRODUCTION] SMS should be sent to ${phone}: ${code}`);
-      return { success: true, code: code, mode: 'production_log' };
+      if (result.success) {
+        return result;
+      } else {
+        // Fallback to console log if SMS service fails
+        console.log(`📱 [PRODUCTION] SMS service failed, logging: ${code}`);
+        return { success: true, code: code, mode: 'production_log', warning: result.error };
+      }
     }
   } catch (error) {
     console.error('Error sending SMS:', error);
