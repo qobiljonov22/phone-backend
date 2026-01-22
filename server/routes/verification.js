@@ -6,7 +6,9 @@ import crypto from 'crypto';
 const router = express.Router();
 
 // OTP storage file
-const otpFile = 'otp_database.json';
+// In Vercel/serverless, use /tmp directory for file writes
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const otpFile = isVercel ? '/tmp/otp_database.json' : 'otp_database.json';
 
 // Load OTPs from file
 const loadOTPs = () => {

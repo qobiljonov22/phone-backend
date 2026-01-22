@@ -41,7 +41,9 @@ import { validatePhone, validatePagination } from './middleware/validator.js';
 dotenv.config();
 
 // Load phones database
-const phonesFile = 'phones_database.json';
+// In Vercel/serverless, use /tmp directory for file writes
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const phonesFile = isVercel ? '/tmp/phones_database.json' : 'phones_database.json';
 let phonesData = { phones: {} };
 
 // Load phones from file
@@ -49,6 +51,12 @@ const loadPhones = () => {
   try {
     if (fs.existsSync(phonesFile)) {
       phonesData = JSON.parse(fs.readFileSync(phonesFile, 'utf8'));
+    } else {
+      // Try to load from root if /tmp doesn't exist (for local dev)
+      const rootFile = 'phones_database.json';
+      if (fs.existsSync(rootFile) && !isVercel) {
+        phonesData = JSON.parse(fs.readFileSync(rootFile, 'utf8'));
+      }
     }
   } catch (error) {
     console.error('Error loading phones:', error);
@@ -59,9 +67,16 @@ const loadPhones = () => {
 // Save phones to file
 const savePhones = () => {
   try {
+    // Ensure /tmp directory exists in Vercel
+    if (isVercel) {
+      if (!fs.existsSync('/tmp')) {
+        fs.mkdirSync('/tmp', { recursive: true });
+      }
+    }
     fs.writeFileSync(phonesFile, JSON.stringify(phonesData, null, 2));
   } catch (error) {
     console.error('Error saving phones:', error);
+    // In serverless, file writes may fail - use in-memory only
   }
 };
 

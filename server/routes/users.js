@@ -6,7 +6,9 @@ import path from 'path';
 const router = express.Router();
 
 // Users database file
-const usersFile = 'users_database.json';
+// In Vercel/serverless, use /tmp directory for file writes
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const usersFile = isVercel ? '/tmp/users_database.json' : 'users_database.json';
 
 // Load users from file or initialize empty
 let users = new Map();

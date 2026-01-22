@@ -5,11 +5,14 @@ import fs from 'fs';
 const router = express.Router();
 
 // Storage files
-const callbacksFile = 'callbacks_database.json';
-const lowpriceFile = 'lowprice_database.json';
-const ordersFile = 'orders_database.json';
-const creditFile = 'credit_database.json';
-const tradeFile = 'trade_database.json';
+// In Vercel/serverless, use /tmp directory for file writes
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const getFilePath = (filename) => isVercel ? `/tmp/${filename}` : filename;
+const callbacksFile = getFilePath('callbacks_database.json');
+const lowpriceFile = getFilePath('lowprice_database.json');
+const ordersFile = getFilePath('orders_database.json');
+const creditFile = getFilePath('credit_database.json');
+const tradeFile = getFilePath('trade_database.json');
 
 // Load data from files
 const loadData = (file) => {

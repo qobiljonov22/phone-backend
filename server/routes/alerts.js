@@ -4,7 +4,9 @@ import fs from 'fs';
 
 const router = express.Router();
 
-const alertsFile = 'alerts_database.json';
+// In Vercel/serverless, use /tmp directory for file writes
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const alertsFile = isVercel ? '/tmp/alerts_database.json' : 'alerts_database.json';
 
 // Load alerts
 const loadAlerts = () => {
