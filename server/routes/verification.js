@@ -28,13 +28,22 @@ const saveOTPs = (data) => {
       data.otps = [];
     }
     
+    // Add metadata
+    data.metadata = {
+      lastUpdated: new Date().toISOString(),
+      totalOTPs: data.otps.length,
+      verifiedOTPs: data.otps.filter(o => o.verified).length,
+      activeOTPs: data.otps.filter(o => !o.verified && new Date(o.expiresAt).getTime() > Date.now()).length
+    };
+    
     // Sort by creation date (newest first)
     data.otps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
     // Save to JSON file with proper formatting
     fs.writeFileSync(otpFile, JSON.stringify(data, null, 2), 'utf8');
     
-    console.log(`✅ OTP data saved to ${otpFile} (${data.otps.length} OTPs)`);
+    console.log(`✅ OTP data saved to ${otpFile} (${data.otps.length} OTPs, ${data.metadata.activeOTPs} active)`);
+    return true;
   } catch (error) {
     console.error('❌ Error saving OTPs:', error);
     throw error;
@@ -46,20 +55,45 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Send OTP via SMS (Mock function - in production, use real SMS service)
-const sendOTP = (phone, code) => {
-  // Mock SMS sending - in production, integrate with SMS service like Twilio, Nexmo, etc.
-  console.log(`📱 SMS sent to ${phone}: Your verification code is ${code}`);
-  console.log(`🔐 OTP Code: ${code} (Valid for 5 minutes)`);
-  
-  // In production, use real SMS service:
-  // await smsService.send(phone, `Your verification code is: ${code}`);
-  
-  return true;
+// Send OTP via SMS
+const sendOTP = async (phone, code, isDevelopment = true) => {
+  try {
+    if (isDevelopment || process.env.NODE_ENV === 'development') {
+      // Development mode: Log to console and return code
+      console.log(`📱 SMS sent to ${phone}: Your verification code is ${code}`);
+      console.log(`🔐 OTP Code: ${code} (Valid for 5 minutes)`);
+      
+      // In development, also return the code so client can see it
+      return { success: true, code: code, mode: 'development' };
+    } else {
+      // Production mode: Send real SMS
+      // Example with Twilio (uncomment and configure):
+      /*
+      const accountSid = process.env.TWILIO_ACCOUNT_SID;
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+      const client = require('twilio')(accountSid, authToken);
+      
+      const message = await client.messages.create({
+        body: `Your verification code is: ${code}. Valid for 5 minutes.`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: phone
+      });
+      
+      return { success: true, messageId: message.sid, mode: 'production' };
+      */
+      
+      // For now, log in production too (replace with real SMS service)
+      console.log(`📱 [PRODUCTION] SMS should be sent to ${phone}: ${code}`);
+      return { success: true, code: code, mode: 'production_log' };
+    }
+  } catch (error) {
+    console.error('Error sending SMS:', error);
+    return { success: false, error: error.message };
+  }
 };
 
 // ========== SEND OTP ==========
-router.post('/send-otp', (req, res) => {
+router.post('/send-otp', async (req, res) => {
   const { phone } = req.body;
   
   // Validation
@@ -144,25 +178,36 @@ router.post('/send-otp', (req, res) => {
   data.otps.push(otp);
   saveOTPs(data);
   
-  // Send OTP via SMS (mock)
-  sendOTP(phone, otpCode);
+  // Send OTP via SMS
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const smsResult = await sendOTP(phone, otpCode, isDevelopment);
+  
+  // Prepare response data
+  const responseData = {
+    phone: phone,
+    expiresIn: '5 minutes',
+    message: 'OTP code sent successfully'
+  };
+  
+  // In development mode, include code in response (for testing)
+  if (isDevelopment && smsResult.success && smsResult.code) {
+    responseData.code = smsResult.code;
+    responseData.note = 'Development mode: Code shown in response. In production, code will be sent via SMS only.';
+  }
   
   res.json({
     success: true,
     status: 'sent',
-    data: {
-      phone: phone,
-      expiresIn: '5 minutes',
-      message: 'OTP code sent successfully'
-    },
+    data: responseData,
     message: 'Tasdiqlash kodi telefon raqamingizga yuborildi. Kod 5 daqiqa davomida amal qiladi.',
     links: {
       verify: `${req.protocol}://${req.get('host')}/api/verification/verify-otp`,
       resend: `${req.protocol}://${req.get('host')}/api/verification/send-otp`
     },
     meta: {
-      note: 'In development mode, check console for OTP code',
-      expiresAt: expiresAt.toISOString()
+      mode: isDevelopment ? 'development' : 'production',
+      expiresAt: expiresAt.toISOString(),
+      sentAt: new Date().toISOString()
     },
     timestamp: new Date().toISOString(),
     version: '1.0.0'

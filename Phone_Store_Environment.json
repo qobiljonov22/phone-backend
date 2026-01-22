@@ -52,6 +52,13 @@
 			"type": "default",
 			"enabled": true,
 			"description": "JWT token from login/register response"
+		},
+		{
+			"key": "otp_code",
+			"value": "",
+			"type": "default",
+			"enabled": true,
+			"description": "OTP code from send-otp response (development mode)"
 		}
 	],
 	"_postman_variable_scope": "environment"

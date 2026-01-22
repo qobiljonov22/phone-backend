@@ -14,28 +14,177 @@
 					"name": "Register",
 					"request": {
 						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
+						"header": [],
 						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"password\": \"\",\n  \"phone\": \"\",\n  \"address\": {\n    \"city\": \"\",\n    \"street\": \"\"\n  },\n  \"preferences\": {\n    \"notifications\": true,\n    \"newsletter\": false,\n    \"currency\": \"USD\",\n    \"language\": \"en\"\n  }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "name",
+									"value": "",
+									"type": "text",
+									"description": "User's full name (required)"
+								},
+								{
+									"key": "email",
+									"value": "",
+									"type": "text",
+									"description": "Valid email address (required)"
+								},
+								{
+									"key": "password",
+									"value": "",
+									"type": "text",
+									"description": "Password - minimum 6 characters (required)"
+								},
+								{
+									"key": "phone",
+									"value": "",
+									"type": "text",
+									"description": "Phone number (optional) - format: +998901234567"
+								},
+								{
+									"key": "address[city]",
+									"value": "",
+									"type": "text",
+									"description": "City (optional)"
+								},
+								{
+									"key": "address[street]",
+									"value": "",
+									"type": "text",
+									"description": "Street address (optional)"
+								},
+								{
+									"key": "preferences[notifications]",
+									"value": "true",
+									"type": "text",
+									"description": "Enable notifications (optional)"
+								},
+								{
+									"key": "preferences[newsletter]",
+									"value": "false",
+									"type": "text",
+									"description": "Subscribe to newsletter (optional)"
+								},
+								{
+									"key": "preferences[currency]",
+									"value": "USD",
+									"type": "text",
+									"description": "Currency preference (optional)"
+								},
+								{
+									"key": "preferences[language]",
+									"value": "en",
+									"type": "text",
+									"description": "Language preference (optional)"
 								}
-							}
+							],
+							"options": {}
 						},
 						"url": {
 							"raw": "{{base_url}}/api/auth/register",
 							"host": ["{{base_url}}"],
 							"path": ["api", "auth", "register"]
 						},
-						"description": "Register a new user account"
-					}
+						"description": "Register a new user account using x-www-form-urlencoded format.\n\n**Required fields:**\n- `name` - User's full name\n- `email` - Valid email address\n- `password` - Minimum 6 characters\n\n**Optional fields:**\n- `phone` - Phone number (format: +998901234567)\n- `address[city]` - City name\n- `address[street]` - Street address\n- `preferences[notifications]` - Enable notifications (true/false)\n- `preferences[newsletter]` - Subscribe to newsletter (true/false)\n- `preferences[currency]` - Currency preference (USD, UZS, etc.)\n- `preferences[language]` - Language preference (en, uz, ru)\n\n**Note:** Make sure to fill in `name`, `email`, and `password` fields before sending the request.\n\n**Alternative:** You can also use JSON format by changing Body mode to 'raw' and selecting 'JSON'."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"password\": \"\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auth/register",
+									"host": ["{{base_url}}"],
+									"path": ["api", "auth", "register"]
+								}
+							},
+							"status": "OK",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"status\": \"created\",\n  \"data\": {\n    \"user\": {\n      \"userId\": \"user_1\",\n      \"name\": \"\",\n      \"email\": \"\",\n      \"phone\": \"\",\n      \"address\": {},\n      \"preferences\": {\n        \"notifications\": true,\n        \"newsletter\": false,\n        \"currency\": \"USD\",\n        \"language\": \"en\"\n      },\n      \"wishlist\": [],\n      \"orderHistory\": []\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"expiresIn\": \"7 days\"\n  },\n  \"message\": \"Foydalanuvchi muvaffaqiyatli ro'yxatdan o'tdi\",\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
+						},
+						{
+							"name": "Validation Error (400)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auth/register",
+									"host": ["{{base_url}}"],
+									"path": ["api", "auth", "register"]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"status\": \"validation_error\",\n  \"error\": \"Name, email and password are required\",\n  \"message\": \"Ism, email va parol kiritilishi shart\",\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
+						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"User registered successfully\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.data).to.have.property('user');",
+									"    pm.expect(jsonData.data).to.have.property('token');",
+									"});",
+									"",
+									"// Save token to environment",
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set('auth_token', jsonData.data.token);",
+									"        pm.environment.set('user_id', jsonData.data.user.userId);",
+									"        console.log('✅ Token saved:', jsonData.data.token.substring(0, 20) + '...');",
+									"        console.log('✅ User ID saved:', jsonData.data.user.userId);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
 				},
 				{
 					"name": "Login",
@@ -180,7 +329,7 @@
 									}
 								],
 								"cookie": [],
-								"body": "{\n  \"success\": true,\n  \"status\": \"sent\",\n  \"data\": {\n    \"phone\": \"+998901234567\",\n    \"expiresIn\": \"5 minutes\",\n    \"message\": \"OTP code sent successfully\"\n  },\n  \"message\": \"Tasdiqlash kodi telefon raqamingizga yuborildi. Kod 5 daqiqa davomida amal qiladi.\",\n  \"links\": {\n    \"verify\": \"http://localhost:3001/api/verification/verify-otp\",\n    \"resend\": \"http://localhost:3001/api/verification/send-otp\"\n  },\n  \"meta\": {\n    \"note\": \"In development mode, check console for OTP code\",\n    \"expiresAt\": \"2024-01-01T12:05:00.000Z\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
+								"body": "{\n  \"success\": true,\n  \"status\": \"sent\",\n  \"data\": {\n    \"phone\": \"+998901234567\",\n    \"code\": \"123456\",\n    \"expiresIn\": \"5 minutes\",\n    \"message\": \"OTP code sent successfully\",\n    \"note\": \"Development mode: Code shown in response. In production, code will be sent via SMS only.\"\n  },\n  \"message\": \"Tasdiqlash kodi telefon raqamingizga yuborildi. Kod 5 daqiqa davomida amal qiladi.\",\n  \"links\": {\n    \"verify\": \"http://localhost:3001/api/verification/verify-otp\",\n    \"resend\": \"http://localhost:3001/api/verification/send-otp\"\n  },\n  \"meta\": {\n    \"mode\": \"development\",\n    \"expiresAt\": \"2024-01-01T12:05:00.000Z\",\n    \"sentAt\": \"2024-01-01T12:00:00.000Z\"\n  },\n  \"timestamp\": \"2024-01-01T12:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
 							}
 						],
 						"event": [
@@ -204,13 +353,21 @@
 										"    pm.expect(jsonData.data).to.have.property('phone');",
 										"});",
 										"",
-										"// Save phone to environment",
+										"// Save phone and OTP code to environment",
 										"if (pm.response.code === 200) {",
 										"    const jsonData = pm.response.json();",
 										"    if (jsonData.data && jsonData.data.phone) {",
 										"        pm.environment.set('test_phone', jsonData.data.phone);",
 										"        console.log('✅ Phone saved:', jsonData.data.phone);",
-										"        console.log('📱 Check console for OTP code (development mode)');",
+										"        ",
+										"        // Save OTP code if available (development mode)",
+										"        if (jsonData.data.code) {",
+										"            pm.environment.set('otp_code', jsonData.data.code);",
+										"            console.log('🔐 OTP Code saved:', jsonData.data.code);",
+										"            console.log('📱 OTP Code (for testing):', jsonData.data.code);",
+										"        } else {",
+										"            console.log('📱 Check server console for OTP code');",
+										"        }",
 										"    }",
 										"}"
 									],
@@ -232,7 +389,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"phone\": \"\",\n  \"code\": \"\"\n}",
+							"raw": "{\n  \"phone\": \"{{test_phone}}\",\n  \"code\": \"{{otp_code}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -244,7 +401,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "verification", "verify-otp"]
 						},
-						"description": "Verify OTP code sent to phone number",
+						"description": "Verify OTP code sent to phone number. Phone and code are automatically filled from environment variables (set by Send OTP request). You can also manually enter phone and code.",
 						"response": [
 							{
 								"name": "Success Response",
@@ -1178,6 +1335,199 @@
 							"raw": "{{base_url}}/api/inventory/{{phone_id}}",
 							"host": ["{{base_url}}"],
 							"path": ["api", "inventory", "{{phone_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Tracking",
+			"item": [
+				{
+					"name": "Create Tracking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": \"{{order_id}}\",\n  \"phoneId\": \"{{phone_id}}\",\n  \"userId\": \"{{user_id}}\",\n  \"shippingAddress\": {\n    \"city\": \"\",\n    \"street\": \"\",\n    \"zipCode\": \"\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/tracking/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tracking", "create"]
+						}
+					}
+				},
+				{
+					"name": "Get Tracking",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/tracking/{{order_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tracking", "{{order_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Get Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer admin-token-2024"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/dashboard",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "dashboard"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Images",
+			"item": [
+				{
+					"name": "Upload Image",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/images/upload/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "images", "upload", "{{phone_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Phone Images",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/images/phone/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "images", "phone", "{{phone_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Get User Notifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/notifications/user/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "notifications", "user", "{{user_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Reviews",
+			"item": [
+				{
+					"name": "Get Phone Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/reviews/phone/{{phone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "reviews", "phone", "{{phone_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Wishlist",
+			"item": [
+				{
+					"name": "Get Wishlist",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/wishlist/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "wishlist", "{{user_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Comparison",
+			"item": [
+				{
+					"name": "Create Comparison",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phoneIds\": [\"{{phone_id}}\"],\n  \"userId\": \"{{user_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/compare",
+							"host": ["{{base_url}}"],
+							"path": ["api", "compare"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Get Overview",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/dashboard/overview",
+							"host": ["{{base_url}}"],
+							"path": ["api", "dashboard", "overview"]
 						}
 					}
 				}

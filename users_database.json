@@ -31,7 +31,30 @@
       "createdAt": "2026-01-21T21:29:54.890Z",
       "updatedAt": "2026-01-21T21:30:52.923Z",
       "isActive": true
+    },
+    "user_3": {
+      "userId": "user_3",
+      "name": "Umidjon",
+      "email": "qobiljonovumidjon22@gmail.com",
+      "password": "0ca5c68c16ed30ed33626f951ceda642ef8d792f1535149d14efb1fd5070a8e4",
+      "phone": "+998770864774",
+      "address": {
+        "city": "Toshkent",
+        "street": "Anorzor 30A "
+      },
+      "preferences": {
+        "notifications": "true",
+        "newsletter": "false",
+        "currency": "USD",
+        "language": "en"
+      },
+      "wishlist": [],
+      "orderHistory": [],
+      "createdAt": "2026-01-22T12:30:38.598Z",
+      "updatedAt": "2026-01-22T12:30:38.598Z",
+      "isActive": true,
+      "role": "user"
     }
   },
-  "userCounter": 2
+  "userCounter": 3
 }
