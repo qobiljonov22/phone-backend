@@ -10,7 +10,8 @@ from models import (
     SearchResponse, CallbackRequest, CreditApplication, TradeInRequest,
     PriceMatchRequest, NewsletterSubscribe, MessageResponse, ErrorResponse,
     PaginatedResponse, ReviewCreate, ReviewResponse, WishlistResponse, WishlistItemResponse,
-    OrderStatusUpdate, StatisticsResponse, RelatedProductsResponse, ProductWithReviews
+    OrderStatusUpdate, StatisticsResponse, RelatedProductsResponse, ProductWithReviews,
+    OneClickBuyRequest
 )
 from database import (
     create_product, get_product, get_all_products, search_products,
@@ -18,7 +19,7 @@ from database import (
     create_category, get_category, get_all_categories,
     update_category, delete_category,
     add_to_cart, get_cart, update_cart_item, remove_from_cart, clear_cart,
-    create_order, get_order, get_all_orders, update_order_status,
+    create_order, create_one_click_order, get_order, get_all_orders, update_order_status,
     get_orders_by_phone, get_orders_by_email,
     create_review, get_product_reviews, get_all_reviews,
     get_product_with_reviews,
@@ -400,6 +401,31 @@ def create_new_order(
         )
     
     return create_order(order, cart_items, current_user)
+
+
+@router.post("/orders/one-click", response_model=OrderResponse, status_code=status.HTTP_201_CREATED, tags=["Orders"])
+def create_one_click_buy_order(request: OneClickBuyRequest):
+    """
+    1-click buy - Bir bosishda sotib olish (savatga qo'shmasdan, to'g'ridan-to'g'ri buyurtma)
+    
+    Bu funksiya foydalanuvchini ro'yxatdan o'tkazmasdan tezkor buyurtma yaratish imkonini beradi.
+    
+    - **product_id**: Mahsulot ID (majburiy)
+    - **name**: Ism (majburiy, kamida 2 belgi)
+    - **phone**: Telefon raqami (majburiy)
+    - **quantity**: Miqdori (default: 1, maksimal: 10)
+    - **delivery_address**: Yetkazib berish manzili (ixtiyoriy)
+    - **notes**: Qo'shimcha eslatmalar (ixtiyoriy)
+    
+    **Eslatma:** Bu endpoint autentifikatsiya talab qilmaydi.
+    """
+    try:
+        return create_one_click_order(request)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 @router.get("/orders/{order_id}", response_model=OrderResponse, tags=["Orders"])

@@ -99,6 +99,7 @@ ip addr show
 ### Orders (Buyurtmalar)
 
 - `POST /orders` - Yangi buyurtma yaratish (Faqat autentifikatsiya qilingan foydalanuvchilar)
+- `POST /orders/one-click` - 1-click buy - Bir bosishda sotib olish (Autentifikatsiya talab qilmaydi)
 - `GET /orders/{order_id}` - Buyurtmani olish (Faqat o'z buyurtmalari yoki Admin)
 - `GET /orders` - Buyurtmalarni olish (Foydalanuvchi o'z buyurtmalari, Admin barcha buyurtmalar)
 - `PUT /orders/{order_id}/status` - Buyurtma holatini yangilash (Admin)
@@ -207,6 +208,23 @@ curl -X POST http://127.0.0.1:8000/orders \
   }'
 ```
 
+### 1-click buy (Bir bosishda sotib olish)
+
+```bash
+curl -X POST http://127.0.0.1:8000/orders/one-click \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": 1,
+    "name": "Ali Valiyev",
+    "phone": "+998901234567",
+    "quantity": 1,
+    "delivery_address": "Chilonzor tumani, 5-mavze",
+    "notes": "Tezroq yetkazib bering"
+  }'
+```
+
+**Eslatma:** Bu endpoint autentifikatsiya talab qilmaydi. Foydalanuvchi ro'yxatdan o'tmasdan ham buyurtma berishi mumkin.
+
 ### Qidiruv
 
 ```bash
@@ -283,6 +301,7 @@ phone-shop-api/
 15. ✅ **Product Detail Page** - Mahsulot batafsil (sharhlar + o'rtacha baholash)
 16. ✅ **Product Update/Delete** - Mahsulotni yangilash va o'chirish
 17. ✅ **Category Update/Delete** - Kategoriyani yangilash va o'chirish
+18. ✅ **1-Click Buy** - Bir bosishda sotib olish (autentifikatsiya talab qilmaydi)
 
 ## 🔐 Authentication
 

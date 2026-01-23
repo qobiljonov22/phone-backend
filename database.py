@@ -8,7 +8,8 @@ from models import (
     ProductCreate, ProductResponse, CategoryCreate, CategoryResponse,
     CartItemCreate, CartItemResponse, OrderCreate, OrderResponse, OrderStatus,
     ReviewCreate, ReviewResponse, WishlistItemResponse, StatisticsResponse,
-    UserCreate, UserResponse, UserRole, DeliveryAddressCreate, DeliveryAddressResponse
+    UserCreate, UserResponse, UserRole, DeliveryAddressCreate, DeliveryAddressResponse,
+    OneClickBuyRequest
 )
 import hashlib
 import random
@@ -246,6 +247,53 @@ def create_order(order: OrderCreate, cart_items: List[CartItemResponse], user: U
     
     # Buyurtma yaratilgandan keyin savatni tozalash
     clear_cart()
+    
+    return OrderResponse(**order_data)
+
+
+def create_one_click_order(request: OneClickBuyRequest) -> OrderResponse:
+    """1-click buy - bir bosishda sotib olish (savatga qo'shmasdan)"""
+    global orders_counter
+    orders_counter += 1
+    
+    # Mahsulotni tekshirish
+    product = get_product(request.product_id)
+    if not product:
+        raise ValueError(f"Mahsulot topilmadi: {request.product_id}")
+    
+    if not product.in_stock:
+        raise ValueError(f"Mahsulot omborda yo'q: {product.name}")
+    
+    # Jami narxni hisoblash
+    total_price = product.price * request.quantity
+    
+    # Cart item yaratish (buyurtma uchun)
+    cart_item = CartItemResponse(
+        id=1,
+        product_id=product.id,
+        product_name=product.name,
+        product_price=product.price,
+        product_image=product.image_url,
+        quantity=request.quantity,
+        total_price=total_price
+    )
+    
+    order_data = {
+        "id": orders_counter,
+        "user_id": None,  # 1-click buy da foydalanuvchi ro'yxatdan o'tmagan bo'lishi mumkin
+        "customer_name": request.name,
+        "customer_phone": request.phone,
+        "customer_email": None,
+        "delivery_address": request.delivery_address,
+        "delivery_address_id": None,
+        "status": OrderStatus.PENDING,
+        "total_price": total_price,
+        "items": [cart_item.dict()],
+        "notes": request.notes,
+        "created_at": datetime.now()
+    }
+    
+    orders_db[orders_counter] = order_data
     
     return OrderResponse(**order_data)
 

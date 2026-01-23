@@ -167,6 +167,16 @@ class NewsletterSubscribe(BaseModel):
     email: str = Field(..., description="Email manzil")
 
 
+class OneClickBuyRequest(BaseModel):
+    """1-click buy (bir bosishda sotib olish) so'rovi"""
+    product_id: int = Field(..., description="Mahsulot ID")
+    name: str = Field(..., min_length=2, description="Ism")
+    phone: str = Field(..., description="Telefon raqami")
+    quantity: int = Field(1, gt=0, le=10, description="Miqdori (default: 1)")
+    delivery_address: Optional[str] = Field(None, description="Yetkazib berish manzili (ixtiyoriy)")
+    notes: Optional[str] = Field(None, description="Qo'shimcha eslatmalar (ixtiyoriy)")
+
+
 # ============ RESPONSE MODELS ============
 class MessageResponse(BaseModel):
     """Oddiy xabar qaytarish uchun model"""
