@@ -72,6 +72,7 @@ ip addr show
 - `GET /products/{product_id}` - Bitta mahsulotni olish
 - `GET /products/{product_id}/detail` - Mahsulot batafsil (sharhlar bilan, o'rtacha baholash)
 - `GET /products/{product_id}/related` - O'xshash mahsulotlar
+- `POST /products/compare` - Mahsulotlarni solishtirish (2-5 ta mahsulot)
 - `POST /products` - Yangi mahsulot yaratish (Admin)
 - `PUT /products/{product_id}` - Mahsulotni yangilash (Admin)
 - `DELETE /products/{product_id}` - Mahsulotni o'chirish (Admin)
@@ -256,6 +257,18 @@ curl -X POST http://127.0.0.1:8000/reviews \
 curl -X POST http://127.0.0.1:8000/wishlist/add/1
 ```
 
+### Mahsulotlarni solishtirish
+
+```bash
+curl -X POST http://127.0.0.1:8000/products/compare \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_ids": [1, 2, 3]
+  }'
+```
+
+**Eslatma:** 2-5 ta mahsulotni solishtirish mumkin.
+
 ### Statistikalar
 
 ```bash
@@ -302,6 +315,7 @@ phone-shop-api/
 16. ✅ **Product Update/Delete** - Mahsulotni yangilash va o'chirish
 17. ✅ **Category Update/Delete** - Kategoriyani yangilash va o'chirish
 18. ✅ **1-Click Buy** - Bir bosishda sotib olish (autentifikatsiya talab qilmaydi)
+19. ✅ **Product Comparison** - Mahsulotlarni solishtirish (2-5 ta mahsulot)
 
 ## 🔐 Authentication
 

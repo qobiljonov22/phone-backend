@@ -9,7 +9,7 @@ from models import (
     CartItemCreate, CartItemResponse, OrderCreate, OrderResponse, OrderStatus,
     ReviewCreate, ReviewResponse, WishlistItemResponse, StatisticsResponse,
     UserCreate, UserResponse, UserRole, DeliveryAddressCreate, DeliveryAddressResponse,
-    OneClickBuyRequest
+    OneClickBuyRequest, CompareProductsResponse
 )
 import hashlib
 import random
@@ -587,6 +587,16 @@ def get_related_products(product_id: int, limit: int = 4) -> List[ProductRespons
     # Limit qo'yish
     related = related[:limit]
     return [ProductResponse(**p) for p in related]
+
+
+def compare_products(product_ids: List[int]) -> List[ProductResponse]:
+    """Mahsulotlarni solishtirish"""
+    compared_products = []
+    for product_id in product_ids:
+        product = get_product(product_id)
+        if product:
+            compared_products.append(product)
+    return compared_products
 
 
 def get_product_with_reviews(product_id: int):

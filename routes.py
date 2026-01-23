@@ -11,7 +11,7 @@ from models import (
     PriceMatchRequest, NewsletterSubscribe, MessageResponse, ErrorResponse,
     PaginatedResponse, ReviewCreate, ReviewResponse, WishlistResponse, WishlistItemResponse,
     OrderStatusUpdate, StatisticsResponse, RelatedProductsResponse, ProductWithReviews,
-    OneClickBuyRequest
+    OneClickBuyRequest, CompareProductsRequest, CompareProductsResponse
 )
 from database import (
     create_product, get_product, get_all_products, search_products,
@@ -24,7 +24,7 @@ from database import (
     create_review, get_product_reviews, get_all_reviews,
     get_product_with_reviews,
     add_to_wishlist, get_wishlist, remove_from_wishlist,
-    get_products_paginated, get_statistics, get_related_products,
+    get_products_paginated, get_statistics, get_related_products, compare_products,
     callbacks_db, credit_applications_db, trade_in_requests_db,
     price_match_requests_db, newsletter_subscribers_db
 )
@@ -777,4 +777,30 @@ def get_related_products_endpoint(product_id: int, limit: int = 4):
     return RelatedProductsResponse(
         product_id=product_id,
         related_products=related
+    )
+
+
+# ============ COMPARE PRODUCTS ENDPOINT ============
+
+@router.post("/products/compare", response_model=CompareProductsResponse, tags=["Products"])
+def compare_products_endpoint(request: CompareProductsRequest):
+    """
+    Mahsulotlarni solishtirish
+    
+    - **product_ids**: Solishtiriladigan mahsulot ID lari (2-5 ta)
+    
+    Bir nechta mahsulotlarni bir-biri bilan solishtirish uchun.
+    Frontend da jadval ko'rinishida ko'rsatish mumkin.
+    """
+    products = compare_products(request.product_ids)
+    
+    if len(products) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Kamida 2 ta mahsulot ko'rsatilishi kerak"
+        )
+    
+    return CompareProductsResponse(
+        products=products,
+        total=len(products)
     )

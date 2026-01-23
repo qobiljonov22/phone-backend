@@ -272,6 +272,17 @@ class RelatedProductsResponse(BaseModel):
     related_products: List[ProductResponse]
 
 
+class CompareProductsRequest(BaseModel):
+    """Mahsulotlarni solishtirish so'rovi"""
+    product_ids: List[int] = Field(..., min_items=2, max_items=5, description="Solishtiriladigan mahsulot ID lari (2-5 ta)")
+
+
+class CompareProductsResponse(BaseModel):
+    """Mahsulotlarni solishtirish javobi"""
+    products: List[ProductResponse]
+    total: int
+
+
 # ============ AUTHENTICATION & AUTHORIZATION MODELS ============
 class UserRole(str, Enum):
     """Foydalanuvchi rollari"""
