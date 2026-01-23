@@ -12,34 +12,44 @@ pip install -r requirements.txt
 
 ### 2. Serverni ishga tushirish
 
-**Localhost uchun:**
+**Barcha qurilmalardan kirish uchun (default):**
 ```bash
 python main.py
 ```
 
-yoki
+Bu buyruq server ni `0.0.0.0` host da ishga tushiradi, ya'ni:
+- ✅ Localhost dan: `http://127.0.0.1:8000`
+- ✅ Boshqa kompyuterdan (tarmoqda): `http://YOUR_IP:8000`
+- ✅ Telefondan (bir xil Wi-Fi): `http://YOUR_IP:8000`
 
+**Yoki uvicorn orqali:**
 ```bash
-uvicorn main:app --reload
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-**Network uchun (boshqa qurilmalardan kirish):**
+**IP manzilingizni topish:**
 ```bash
-# Avval IP manzilingizni toping
-# Windows: ipconfig
-# Mac/Linux: ifconfig
+# Windows:
+ipconfig
+# IPv4 Address ni toping (masalan: 192.168.1.100)
 
-# Keyin server ni shu IP da ishga tushiring
-uvicorn main:app --host 192.168.1.100 --port 8000 --reload
+# Mac/Linux:
+ifconfig
+# yoki
+ip addr show
 ```
-
-**Eslatma:** `host="0.0.0.0"` barcha IP manzillardan kirishga ruxsat beradi (default)
 
 ### 3. API ga kirish
 
-- **API Base URL**: `http://127.0.0.1:8000`
+**Local kompyuterdan:**
+- **API Base URL**: `http://127.0.0.1:8000` yoki `http://localhost:8000`
 - **Swagger Dokumentatsiya**: `http://127.0.0.1:8000/docs`
-- **ReDoc Dokumentatsiya**: `http://127.0.0.1:8000/redoc`
+
+**Boshqa kompyuterdan (tarmoqda):**
+- **API Base URL**: `http://YOUR_IP:8000` (masalan: `http://192.168.1.100:8000`)
+- **Swagger Dokumentatsiya**: `http://YOUR_IP:8000/docs`
+
+**Muhim:** Firewall da 8000 port ni ochish kerak bo'lishi mumkin!
 
 ## 📚 API Endpointlar
 
@@ -317,6 +327,29 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 - Serverni qayta ishga tushirganda barcha ma'lumotlar yo'qoladi
 - Production uchun haqiqiy database ishlatish kerak
 - CORS sozlamalari hozircha barcha domain'lardan kirishga ruxsat beradi (production da o'zgartirish kerak)
+
+## 🔥 Firewall Sozlamalari (Boshqa kompyuterdan kirish uchun)
+
+Agar boshqa kompyuterdan kirishda muammo bo'lsa, firewall da port ni oching:
+
+**Windows:**
+1. Windows Defender Firewall → Advanced settings
+2. Inbound Rules → New Rule
+3. Port → TCP → 8000 → Allow connection
+4. Finish
+
+**Yoki PowerShell orqali:**
+```powershell
+New-NetFirewallRule -DisplayName "Phone Shop API" -Direction Inbound -LocalPort 8000 -Protocol TCP -Action Allow
+```
+
+**Linux:**
+```bash
+sudo ufw allow 8000/tcp
+# yoki
+sudo firewall-cmd --permanent --add-port=8000/tcp
+sudo firewall-cmd --reload
+```
 
 ## 🎯 API Dokumentatsiya
 
