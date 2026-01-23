@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Node.js / Express.js (eski loyiha)
+node_modules/
+package-lock.json
+package.json
+.env
+.env.local
+.env.*.local
+
+# Server papkasi (eski Express.js)
+server/
+public/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Lib papkasi (Python site-packages - git ga qo'shmaslik kerak)
+Lib/
