@@ -1,0 +1,587 @@
+{
+	"info": {
+		"_postman_id": "phone-shop-api-collection",
+		"name": "Phone Shop API",
+		"description": "Telefon do'koni uchun FastAPI REST API - Barcha endpointlar",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": ["{{base_url}}"],
+							"path": ["products"]
+						}
+					}
+				},
+				{
+					"name": "Get Products by Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products?category_id=1",
+							"host": ["{{base_url}}"],
+							"path": ["products"],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Products Paginated",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products-paginated?page=1&page_size=10&sort_by=price_asc",
+							"host": ["{{base_url}}"],
+							"path": ["products-paginated"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "page_size",
+									"value": "10"
+								},
+								{
+									"key": "sort_by",
+									"value": "price_asc",
+									"description": "price_asc, price_desc, name_asc, name_desc"
+								},
+								{
+									"key": "min_price",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "max_price",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/1",
+							"host": ["{{base_url}}"],
+							"path": ["products", "1"]
+						}
+					}
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"iPhone 15\",\n    \"description\": \"Eng yangi iPhone modeli\",\n    \"price\": 9000000,\n    \"storage\": \"256 GB\",\n    \"category_id\": 1,\n    \"image_url\": \"https://example.com/iphone15.jpg\",\n    \"in_stock\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": ["{{base_url}}"],
+							"path": ["products"]
+						}
+					}
+				},
+				{
+					"name": "Get Related Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/1/related?limit=4",
+							"host": ["{{base_url}}"],
+							"path": ["products", "1", "related"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "4"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": ["{{base_url}}"],
+							"path": ["categories"]
+						}
+					}
+				},
+				{
+					"name": "Get Category by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/categories/1",
+							"host": ["{{base_url}}"],
+							"path": ["categories", "1"]
+						}
+					}
+				},
+				{
+					"name": "Create Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Xiaomi\",\n    \"slug\": \"xiaomi\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": ["{{base_url}}"],
+							"path": ["categories"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Search",
+			"item": [
+				{
+					"name": "Search Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/search?query=iPhone",
+							"host": ["{{base_url}}"],
+							"path": ["search"],
+							"query": [
+								{
+									"key": "query",
+									"value": "iPhone"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "Get Cart",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart",
+							"host": ["{{base_url}}"],
+							"path": ["cart"]
+						}
+					}
+				},
+				{
+					"name": "Add to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": 1,\n    \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/add",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "add"]
+						}
+					}
+				},
+				{
+					"name": "Update Cart Item",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart/1?quantity=3",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "1"],
+							"query": [
+								{
+									"key": "quantity",
+									"value": "3"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Remove from Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart/1",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "1"]
+						}
+					}
+				},
+				{
+					"name": "Clear Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart",
+							"host": ["{{base_url}}"],
+							"path": ["cart"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer_name\": \"Ali Valiyev\",\n    \"customer_phone\": \"+998901234567\",\n    \"customer_email\": \"ali@example.com\",\n    \"delivery_address\": \"Toshkent shahri, Chilonzor tumani\",\n    \"notes\": \"Tezroq yetkazib bering\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/orders",
+							"host": ["{{base_url}}"],
+							"path": ["orders"]
+						}
+					}
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/orders/1",
+							"host": ["{{base_url}}"],
+							"path": ["orders", "1"]
+						}
+					}
+				},
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/orders",
+							"host": ["{{base_url}}"],
+							"path": ["orders"]
+						}
+					}
+				},
+				{
+					"name": "Update Order Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"confirmed\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/orders/1/status",
+							"host": ["{{base_url}}"],
+							"path": ["orders", "1", "status"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Reviews",
+			"item": [
+				{
+					"name": "Create Review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": 1,\n    \"customer_name\": \"Akmal Karimov\",\n    \"rating\": 5,\n    \"comment\": \"Ajoyib mahsulot! Juda qoniqdim.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/reviews",
+							"host": ["{{base_url}}"],
+							"path": ["reviews"]
+						}
+					}
+				},
+				{
+					"name": "Get Product Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/1/reviews",
+							"host": ["{{base_url}}"],
+							"path": ["products", "1", "reviews"]
+						}
+					}
+				},
+				{
+					"name": "Get All Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/reviews",
+							"host": ["{{base_url}}"],
+							"path": ["reviews"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Wishlist",
+			"item": [
+				{
+					"name": "Get Wishlist",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/wishlist",
+							"host": ["{{base_url}}"],
+							"path": ["wishlist"]
+						}
+					}
+				},
+				{
+					"name": "Add to Wishlist",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/wishlist/add/1",
+							"host": ["{{base_url}}"],
+							"path": ["wishlist", "add", "1"]
+						}
+					}
+				},
+				{
+					"name": "Remove from Wishlist",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/wishlist/remove/1",
+							"host": ["{{base_url}}"],
+							"path": ["wishlist", "remove", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Forms",
+			"item": [
+				{
+					"name": "Submit Callback",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Javohir Toshmatov\",\n    \"phone\": \"+998901234567\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/callbacks",
+							"host": ["{{base_url}}"],
+							"path": ["callbacks"]
+						}
+					}
+				},
+				{
+					"name": "Submit Credit Application",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Farhod Qodirov\",\n    \"phone\": \"+998901234567\",\n    \"email\": \"farhod@example.com\",\n    \"monthly_income\": 5000000,\n    \"desired_product_id\": 1,\n    \"notes\": \"Kredit olishni xohlayman\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/credit-applications",
+							"host": ["{{base_url}}"],
+							"path": ["credit-applications"]
+						}
+					}
+				},
+				{
+					"name": "Submit Trade-in Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Bobur Mirzayev\",\n    \"phone\": \"+998901234567\",\n    \"old_device_brand\": \"Samsung\",\n    \"old_device_model\": \"Galaxy S20\",\n    \"old_device_condition\": \"Yaxshi\",\n    \"desired_product_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/trade-in-requests",
+							"host": ["{{base_url}}"],
+							"path": ["trade-in-requests"]
+						}
+					}
+				},
+				{
+					"name": "Submit Price Match Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Dilshod Rahimov\",\n    \"phone\": \"+998901234567\",\n    \"product_id\": 1,\n    \"competitor_price\": 650000,\n    \"competitor_url\": \"https://example.com/competitor\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/price-match-requests",
+							"host": ["{{base_url}}"],
+							"path": ["price-match-requests"]
+						}
+					}
+				},
+				{
+					"name": "Subscribe Newsletter",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/newsletter/subscribe",
+							"host": ["{{base_url}}"],
+							"path": ["newsletter", "subscribe"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Statistics",
+			"item": [
+				{
+					"name": "Get Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/statistics",
+							"host": ["{{base_url}}"],
+							"path": ["statistics"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+}
