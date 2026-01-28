@@ -2,7 +2,7 @@
 API Routes - Barcha endpointlar bu yerda
 FastAPI da har bir endpoint funksiya sifatida yoziladi
 """
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 from typing import List, Optional
 from models import (
     ProductCreate, ProductResponse, ProductWithReviews, CategoryCreate, CategoryResponse,
@@ -36,10 +36,24 @@ from models import UserResponse
 router = APIRouter()
 
 
+# ============ VALIDATORS ============
+
+def validate_category_id(category_id: Optional[int] = Query(None)) -> Optional[int]:
+    """
+    category_id ni validate qilish (NaN va invalid values tekshirish)
+    """
+    if category_id is not None and category_id <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="category_id musbat son bo'lishi kerak"
+        )
+    return category_id
+
+
 # ============ PRODUCT ENDPOINTS ============
 
 @router.get("/products", response_model=List[ProductResponse], tags=["Products"])
-def get_products(category_id: Optional[int] = None):
+def get_products(category_id: Optional[int] = Depends(validate_category_id)):
     """
     Barcha mahsulotlarni olish
     
