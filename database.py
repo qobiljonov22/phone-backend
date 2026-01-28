@@ -377,6 +377,113 @@ def initialize_sample_data():
         in_stock=True
     ))
     
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    create_product(ProductCreate(
+        name="iPhone 14 Pro Max",
+        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
+        price=1200000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        in_stock=True
+    ))
+    
+
     # create_product(ProductCreate(
     #     name="Samsung Galaxy S23",
     #     description="Samsung ning eng yaxshi flagmani",
