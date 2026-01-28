@@ -224,7 +224,6 @@ curl -X POST http://127.0.0.1:8000/orders \
     "delivery_address_id": 1,
     "notes": "Tezroq yetkazib bering"
   }'
-```
 
 ### 1-click buy (Bir bosishda sotib olish)
 
