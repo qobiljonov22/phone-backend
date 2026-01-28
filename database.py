@@ -484,16 +484,6 @@ def initialize_sample_data():
     ))
     
 
-    # create_product(ProductCreate(
-    #     name="Samsung Galaxy S23",
-    #     description="Samsung ning eng yaxshi flagmani",
-    #     price=800000.0,
-    #     storage="128 GB",
-    #     category_id=category2.id,
-    #     image_url="https://example.com/s23.jpg",
-    #     in_stock=True
-    # ))
-
 
 # ============ REVIEW FUNCTIONS ============
 def create_review(review: ReviewCreate) -> ReviewResponse:
