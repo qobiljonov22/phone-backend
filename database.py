@@ -363,7 +363,7 @@ def initialize_sample_data():
         price=719900.0,
         storage="128 GB",
         category_id=category1.id,
-        image_url="https://example.com/iphone14.jpg",
+        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
     
@@ -373,19 +373,19 @@ def initialize_sample_data():
         price=1200000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://example.com/iphone14promax.jpg",
+        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
         in_stock=True
     ))
     
-    create_product(ProductCreate(
-        name="Samsung Galaxy S23",
-        description="Samsung ning eng yaxshi flagmani",
-        price=800000.0,
-        storage="128 GB",
-        category_id=category2.id,
-        image_url="https://example.com/s23.jpg",
-        in_stock=True
-    ))
+    # create_product(ProductCreate(
+    #     name="Samsung Galaxy S23",
+    #     description="Samsung ning eng yaxshi flagmani",
+    #     price=800000.0,
+    #     storage="128 GB",
+    #     category_id=category2.id,
+    #     image_url="https://example.com/s23.jpg",
+    #     in_stock=True
+    # ))
 
 
 # ============ REVIEW FUNCTIONS ============

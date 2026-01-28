@@ -51,6 +51,20 @@ ip addr show
 
 **Muhim:** Firewall da 8000 port ni ochish kerak bo'lishi mumkin!
 
+### 4. 🌐 Deploy qilingan API (Production)
+
+**Live URL (Render.com):**
+- **API Base URL**: `https://phone-backend-kn1h.onrender.com`
+- **Swagger Dokumentatsiya**: `https://phone-backend-kn1h.onrender.com/docs`
+- **ReDoc Dokumentatsiya**: `https://phone-backend-kn1h.onrender.com/redoc`
+
+**Misol endpointlar:**
+- **Mahsulotlar**: `https://phone-backend-kn1h.onrender.com/products`
+- **Kategoriyalar**: `https://phone-backend-kn1h.onrender.com/categories`
+- **Qidiruv**: `https://phone-backend-kn1h.onrender.com/search?query=iPhone`
+
+**Eslatma:** Free tier da server inactivity bo'lganda to'xtaydi. Birinchi so'rov 50+ soniya olishi mumkin (cold start).
+
 ## 📚 API Endpointlar
 
 ### Authentication (Avtorizatsiya)
@@ -131,8 +145,11 @@ ip addr show
 
 ## 📝 Misol So'rovlar
 
+**Eslatma:** Quyidagi misollarda `http://127.0.0.1:8000` o'rniga `https://phone-backend-kn1h.onrender.com` ishlatishingiz mumkin (deploy qilingan versiya uchun).
+
 ### Ro'yxatdan o'tish
 
+**Local:**
 ```bash
 curl -X POST http://127.0.0.1:8000/auth/register \
   -H "Content-Type: application/json" \
