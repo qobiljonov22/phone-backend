@@ -40,7 +40,7 @@ from models import UserResponse
 router = APIRouter()
 
 
-# ============ SHOP INFO ENDPOINT ===========
+# ============ SHOP INFO ENDPOINT ============
 @router.get("/shop-info", tags=["Info"])
 def get_shop_info():
     """
