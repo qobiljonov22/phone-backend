@@ -44,22 +44,22 @@ router = APIRouter()
 @router.get("/shop-info", tags=["Info"])
 def get_shop_info():
     """
-    Do'kon haqida umumiy ma'lumot (statik)
+    Магазин о себе (статично, 1:1 как в Figma)
     """
     return JSONResponse({
-        "title": "Yangi modeldagi iPhone'lar qulay narxlarda",
-        "description": "Yangi telefon sotib olmoqchi bo'lganlar uchun Istoreapple.ru quyidagilarni taklif qiladi:",
+        "title": "Новые модели Айфонов по выгодным ценам",
+        "description": "Для тех, кто хочет приобрести новый телефон магазин Istoreapple.ru предлагает:",
         "benefits": [
-            "Barcha turdagi qurilmalarga past narxlar, arzon aksessuarlar;",
-            "Brendli original sovg'alar;",
-            "Yangi va ishonchli eski smartfonlar;",
-            "Zamonaviy dizayn, rang va variantlar ko'pligi;",
-            "Katalogdagi barcha tovarlar mavjud va xarid hamda muddatli to'lov uchun ochiq;",
-            "Sankt-Peterburg va viloyatlarga tez yetkazib berish;",
-            "Barcha modellarga kafolat;",
-            "To'lovning barcha usullari;",
-            "Sertifikatlangan, rasmiy saytdagi tovarlar;",
-            "2013 yildan beri iPhone sotamiz. Har doim mijozlarimiz sharhlarini o'qishingiz, do'konga qo'ng'iroq qilishingiz va istalgan Apple modeliga maslahat olishingiz mumkin."
+            "Низкие цены на все типы устройств, доступные аксессуары;",
+            "Оригинальные фирменные подарки;",
+            "Новые и надежные старые смартфоны;",
+            "Современный дизайн, большое количество цветов и вариантов;",
+            "Все товары в каталоге в наличии и доступны для покупки и рассрочки;",
+            "Быстрая доставка в Санкт-Петербург и регионы;",
+            "Гарантия на все модели;",
+            "Все способы оплаты!;",
+            "Сертифицированные товары на официальном сайте;",
+            "Мы продаем iPhone с 2013 года. Вы всегда можете почитать отзывы наших клиентов, позвонить в магазин и получить консультацию по любой модели Apple."
         ]
     })
 
