@@ -48,7 +48,7 @@ def get_shop_info():
     """
     return JSONResponse({
         "title": "Yangi modeldagi iPhone'lar qulay narxlarda",
-        "description": "Yangi telefon sotib olmoqchi bo'lganlar uchun Istoreapple.ru do'koni quyidagilarni taklif qiladi:",
+        "description": "Yangi telefon sotib olmoqchi bo'lganlar uchun Istoreapple.ru quyidagilarni taklif qiladi:",
         "benefits": [
             "Barcha turdagi qurilmalarga past narxlar, arzon aksessuarlar;",
             "Brendli original sovg'alar;",
