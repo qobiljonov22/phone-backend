@@ -323,7 +323,7 @@ def search_products_endpoint(query: str):
     )
 
 
-# ============ CART ENDPOINTS ============
+# ============ CART ENDPOINTS ===========
 
 @router.get("/cart", response_model=CartResponse, tags=["Cart"])
 def get_cart_items():
