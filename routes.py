@@ -11,6 +11,7 @@ from models import (
     PriceMatchRequest, NewsletterSubscribe, MessageResponse, ErrorResponse,
     PaginatedResponse, ReviewCreate, ReviewResponse, WishlistResponse, WishlistItemResponse,
     OrderStatusUpdate, StatisticsResponse, RelatedProductsResponse, ProductWithReviews,
+    VideoCreate, VideoResponse, ProductVideosResponse,
     OneClickBuyRequest, CompareProductsRequest, CompareProductsResponse
 )
 from database import (
@@ -25,15 +26,42 @@ from database import (
     get_product_with_reviews,
     add_to_wishlist, get_wishlist, remove_from_wishlist,
     get_products_paginated, get_statistics, get_related_products, compare_products,
+    create_video, get_video, get_all_videos, get_videos_by_product, delete_video,
     callbacks_db, credit_applications_db, trade_in_requests_db,
-    price_match_requests_db, newsletter_subscribers_db
+    price_match_requests_db, newsletter_subscribers_db, videos_db
 )
 from datetime import datetime
 from auth import get_current_active_user, get_current_admin
+
+from fastapi.responses import JSONResponse
 from models import UserResponse
 
 # Router yaratish - barcha endpointlarni bitta router ga to'plash
 router = APIRouter()
+
+
+# ============ SHOP INFO ENDPOINT ============
+@router.get("/shop-info", tags=["Info"])
+def get_shop_info():
+    """
+    Do'kon haqida umumiy ma'lumot (statik)
+    """
+    return JSONResponse({
+        "title": "Yangi modeldagi iPhone'lar qulay narxlarda",
+        "description": "Yangi telefon sotib olmoqchi bo'lganlar uchun Istoreapple.ru do'koni quyidagilarni taklif qiladi:",
+        "benefits": [
+            "Barcha turdagi qurilmalarga past narxlar, arzon aksessuarlar;",
+            "Brendli original sovg'alar;",
+            "Yangi va ishonchli eski smartfonlar;",
+            "Zamonaviy dizayn, rang va variantlar ko'pligi;",
+            "Katalogdagi barcha tovarlar mavjud va xarid hamda muddatli to'lov uchun ochiq;",
+            "Sankt-Peterburg va viloyatlarga tez yetkazib berish;",
+            "Barcha modellarga kafolat;",
+            "To'lovning barcha usullari;",
+            "Sertifikatlangan, rasmiy saytdagi tovarlar;",
+            "2013 yildan beri iPhone sotamiz. Har doim mijozlarimiz sharhlarini o'qishingiz, do'konga qo'ng'iroq qilishingiz va istalgan Apple modeliga maslahat olishingiz mumkin."
+        ]
+    })
 
 
 # ============ VALIDATORS ============
@@ -818,3 +846,45 @@ def compare_products_endpoint(request: CompareProductsRequest):
         products=products,
         total=len(products)
     )
+
+
+# ============ VIDEO ENDPOINTS ============
+
+@router.post("/videos", response_model=VideoResponse, status_code=status.HTTP_201_CREATED, tags=["Videos"])
+def create_new_video(video: VideoCreate, current_user: UserResponse = Depends(get_current_admin)):
+    """
+    Yangi video yaratish (Admin uchun)
+
+    - **product_id**: Mahsulot ID (ixtiyoriy)
+    - **title**: Video sarlavhasi
+    - **url**: Video fayl yoki streaming URL
+    """
+    return create_video(video)
+
+
+@router.get("/videos", response_model=List[VideoResponse], tags=["Videos"])
+def list_videos(product_id: Optional[int] = None):
+    """
+    Barcha videolar yoki mahsulotga oid videolar
+
+    - **product_id**: Mahsulot ID bo'yicha filtrlash (ixtiyoriy)
+    """
+    if product_id:
+        return get_videos_by_product(product_id)
+    return get_all_videos()
+
+
+@router.get("/videos/{video_id}", response_model=VideoResponse, tags=["Videos"])
+def get_video_by_id(video_id: int):
+    video = get_video(video_id)
+    if not video:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Video topilmadi: {video_id}")
+    return video
+
+
+@router.delete("/videos/{video_id}", response_model=MessageResponse, tags=["Videos"])
+def delete_video_endpoint(video_id: int, current_user: UserResponse = Depends(get_current_admin)):
+    success = delete_video(video_id)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Video topilmadi: {video_id}")
+    return MessageResponse(message="Video muvaffaqiyatli o'chirildi")

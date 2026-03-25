@@ -368,3 +368,27 @@ class DeliveryAddressResponse(DeliveryAddressCreate):
     
     class Config:
         from_attributes = True
+
+
+# ============ VIDEO MODELS ============
+class VideoCreate(BaseModel):
+    """Video yaratish va bog'lash uchun model"""
+    product_id: Optional[int] = Field(None, description="Mahsulot bilan bog'liq ID")
+    title: str = Field(..., description="Video sarlavhasi")
+    description: Optional[str] = Field(None, description="Video tavsifi")
+    url: str = Field(..., description="Video fayl yoki streaming URL")
+    thumbnail_url: Optional[str] = Field(None, description="Thumbnail URL")
+    duration: Optional[int] = Field(None, description="Davomiylik (soniyalar)")
+
+
+class VideoResponse(VideoCreate):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ProductVideosResponse(BaseModel):
+    product_id: int
+    videos: List[VideoResponse]

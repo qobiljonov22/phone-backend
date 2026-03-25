@@ -8,6 +8,7 @@ from models import (
     ProductCreate, ProductResponse, CategoryCreate, CategoryResponse,
     CartItemCreate, CartItemResponse, OrderCreate, OrderResponse, OrderStatus,
     ReviewCreate, ReviewResponse, WishlistItemResponse, StatisticsResponse,
+    VideoCreate, VideoResponse,
     UserCreate, UserResponse, UserRole, DeliveryAddressCreate, DeliveryAddressResponse,
     OneClickBuyRequest, CompareProductsResponse
 )
@@ -58,6 +59,10 @@ verification_codes_db: Dict[str, dict] = {}  # phone -> {code, expires_at, user_
 # Delivery addresses database
 delivery_addresses_db: Dict[int, dict] = {}  # address_id -> address_data
 delivery_addresses_counter = 0
+
+# Videos database
+videos_db: Dict[int, dict] = {}
+videos_counter = 0
 
 
 # ============ PRODUCT FUNCTIONS ============
@@ -694,6 +699,54 @@ def compare_products(product_ids: List[int]) -> List[ProductResponse]:
         if product:
             compared_products.append(product)
     return compared_products
+
+
+# ============ VIDEO FUNCTIONS ============
+def create_video(video: VideoCreate) -> VideoResponse:
+    """Yangi video yaratish (mahsulotga bog'lash mumkin)"""
+    global videos_counter
+    videos_counter += 1
+
+    video_data = {
+        "id": videos_counter,
+        "product_id": video.product_id,
+        "title": video.title,
+        "description": video.description,
+        "url": video.url,
+        "thumbnail_url": video.thumbnail_url,
+        "duration": video.duration,
+        "created_at": datetime.now()
+    }
+
+    videos_db[videos_counter] = video_data
+    return VideoResponse(**video_data)
+
+
+def get_video(video_id: int) -> Optional[VideoResponse]:
+    """Video ni ID bo'yicha olish"""
+    v = videos_db.get(video_id)
+    if v:
+        return VideoResponse(**v)
+    return None
+
+
+def get_videos_by_product(product_id: int) -> List[VideoResponse]:
+    """Berilgan mahsulotga tegishli videolarni olish"""
+    vids = [VideoResponse(**v) for v in videos_db.values() if v.get("product_id") == product_id]
+    return vids
+
+
+def get_all_videos() -> List[VideoResponse]:
+    """Barcha videolarni olish"""
+    return [VideoResponse(**v) for v in videos_db.values()]
+
+
+def delete_video(video_id: int) -> bool:
+    """Videoni o'chirish"""
+    if video_id in videos_db:
+        del videos_db[video_id]
+        return True
+    return False
 
 
 def get_product_with_reviews(product_id: int):
