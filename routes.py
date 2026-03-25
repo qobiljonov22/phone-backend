@@ -53,7 +53,7 @@ def get_shop_info():
     })
 
 
-# ============ VALIDATORS ============
+# ============ VALIDATORS =============
 
 def validate_category_id(category_id: Optional[int] = Query(None)) -> Optional[int]:
     """
