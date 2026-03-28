@@ -1,43 +1,4 @@
-"""
-API Routes - Barcha endpointlar bu yerda
-FastAPI da har bir endpoint funksiya sifatida yoziladi
-"""
-from fastapi import APIRouter, HTTPException, status, Depends, Query
-from typing import List, Optional
-from models import (
-    ProductCreate, ProductResponse, ProductWithReviews, CategoryCreate, CategoryResponse,
-    CartItemCreate, CartItemResponse, CartResponse, OrderCreate, OrderResponse,
-    SearchResponse, CallbackRequest, CreditApplication, TradeInRequest,
-    PriceMatchRequest, NewsletterSubscribe, MessageResponse, ErrorResponse,
-    PaginatedResponse, ReviewCreate, ReviewResponse, WishlistResponse, WishlistItemResponse,
-    OrderStatusUpdate, StatisticsResponse, RelatedProductsResponse, ProductWithReviews,
-    VideoCreate, VideoResponse, ProductVideosResponse,
-    OneClickBuyRequest, CompareProductsRequest, CompareProductsResponse
-)
-from database import (
-    create_product, get_product, get_all_products, search_products,
-    update_product, delete_product,
-    create_category, get_category, get_all_categories,
-    update_category, delete_category,
-    add_to_cart, get_cart, update_cart_item, remove_from_cart, clear_cart,
-    create_order, create_one_click_order, get_order, get_all_orders, update_order_status,
-    get_orders_by_phone, get_orders_by_email,
-    create_review, get_product_reviews, get_all_reviews,
-    get_product_with_reviews,
-    add_to_wishlist, get_wishlist, remove_from_wishlist,
-    get_products_paginated, get_statistics, get_related_products, compare_products,
-    create_video, get_video, get_all_videos, get_videos_by_product, delete_video,
-    callbacks_db, credit_applications_db, trade_in_requests_db,
-    price_match_requests_db, newsletter_subscribers_db, videos_db
-)
-from datetime import datetime
-from auth import get_current_active_user, get_current_admin
 
-from fastapi.responses import JSONResponse
-from models import UserResponse
-
-# Router yaratish - barcha endpointlarni bitta router ga to'plash
-router = APIRouter()
 
 
 # ============ SHOP INFO ENDPOINT ===========
