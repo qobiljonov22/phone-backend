@@ -1,6 +1,28 @@
 
 
+# ============ IMPORTS ============
+from fastapi import APIRouter, Query, HTTPException, status, Depends
+from fastapi.responses import JSONResponse
+from typing import Optional, List
+from models import ProductResponse, PaginatedResponse, UserResponse, ProductCreate, ProductWithReviews, MessageResponse, CategoryResponse, CategoryCreate, SearchResponse, CartResponse, CartItemResponse, CartItemCreate, OrderResponse, OrderCreate, OneClickBuyRequest, CallbackRequest, CreditApplication, TradeInRequest, PriceMatchRequest, NewsletterSubscribe, ReviewResponse, ReviewCreate, WishlistResponse, WishlistItemResponse, OrderStatusUpdate, StatisticsResponse, RelatedProductsResponse, CompareProductsResponse, CompareProductsRequest, VideoResponse, VideoCreate
+from database import get_all_products, get_products_paginated, get_product, get_product_with_reviews, create_product
 
+# Minimal admin dependency for endpoints that require admin
+def get_current_admin():
+    # TODO: Replace with real authentication and admin check
+    # For now, allow all requests as admin
+    return {"role": "admin"}
+
+# Minimal user dependency for endpoints that require an active user
+def get_current_active_user():
+    # TODO: Replace with real authentication and user check
+    # For now, allow all requests as user
+    return {"role": "user"}
+
+# APIRouter instance
+router = APIRouter()
+
+# ============ SHOP INFO ENDPOINT ===========
 # ============ SHOP INFO ENDPOINT ===========
 @router.get("/shop-info", tags=["Info"])
 def get_shop_info():
@@ -12,8 +34,6 @@ def get_shop_info():
         "description": "Для тех, кто хочет приобрести новый телефон магазин Istoreapple.ru предлагает:",
         "benefits": "Низкие цены на все виды устройств, недорогие аксессуары;\nОригинальные подарки бренда;\nНовая линейка смартфонов и проверенные старые модели;\nЛаконичный дизайн, большой выбор цветов и оттенков;\nВсе товары в каталоге есть в наличии и доступны для покупки в кредит и рассрочку;\nБыстрая доставка по Санкт-Петербургу и области;\nГарантия на все модели телефонов;\nВсе способы оплаты!\nТовары, представленные на официальном сайте Istoreapple.ru, сертифицированы. Мы занимаемся продажей айфонов с 2013 года. Вы всегда можете прочитать отзывы о покупке наших клиентов, позвонить в магазин и получить консультацию по любой модели Apple."
     })
-
-
 # ============ VALIDATORS =============
 
 def validate_category_id(category_id: Optional[int] = Query(None)) -> Optional[int]:
