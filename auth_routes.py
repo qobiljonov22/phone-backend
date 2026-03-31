@@ -7,12 +7,14 @@ from typing import List, Optional
 from models import (
     RegistrationRequest, LoginRequest, TokenResponse, UserResponse,
     VerificationRequest, VerificationResponse, ResendCodeRequest, MessageResponse,
-    DeliveryAddressCreate, DeliveryAddressResponse
+    DeliveryAddressCreate, DeliveryAddressResponse,
+    ForgotPasswordRequest, ResetPasswordRequest, ResetPasswordResponse
 )
 from database import (
     create_user, authenticate_user, verify_user_phone, send_verification_code,
     resend_verification_code, get_user_delivery_addresses,
-    create_delivery_address, get_default_delivery_address
+    create_delivery_address, get_default_delivery_address,
+    forgot_password, verify_password_reset_token, reset_user_password
 )
 from auth import create_access_token, get_current_active_user
 
@@ -182,3 +184,75 @@ def get_default_address(
     Foydalanuvchining asosiy manzilini olish
     """
     return get_default_delivery_address(current_user.id)
+
+
+# ============ FORGOT PASSWORD ENDPOINTS ============
+
+@router.post("/forgot-password", response_model=MessageResponse, status_code=status.HTTP_200_OK)
+def forgot_password_endpoint(request: ForgotPasswordRequest):
+    """
+    Parolni unutish
+    
+    - **email**: Email manzil (majburiy)
+    
+    Email ga parolni tiklash linki yuboriladi.
+    Agar email ro'yxatdan o'tgan bo'lsa, tiklash linki yuboriladi.
+    """
+    try:
+        token = forgot_password(request.email)
+        if not token:
+            # Xavfsizlik uchun email topilmasa ham xuddi shu xabarni qaytaramiz
+            return MessageResponse(
+                message="Agar bu email ro'yxatdan o'tgan bo'lsa, parolni tiklash linki yuborildi",
+                success=True
+            )
+        
+        return MessageResponse(
+            message="Parolni tiklash linki emailingizga yuborildi. Emailni tekshiring",
+            success=True
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring"
+        )
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse, status_code=status.HTTP_200_OK)
+def reset_password_endpoint(request: ResetPasswordRequest):
+    """
+    Parolni tiklash
+    
+    - **token**: Tiklash tokeni (majburiy)
+    - **new_password**: Yangi parol (kamida 6 belgi)
+    
+    Email orqali yuborilgan token orqali parolni yangilash
+    """
+    try:
+        # Tokenni tekshirish
+        token_data = verify_password_reset_token(request.token)
+        if not token_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Token noto'g'ri yoki muddati o'tgan"
+            )
+        
+        # Parolni yangilash
+        success = reset_user_password(token_data["user_id"], request.new_password)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Parolni yangilab bo'lmadi"
+            )
+        
+        return ResetPasswordResponse(
+            message="Parol muvaffaqiyatli yangilandi!",
+            success=True
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring"
+        )

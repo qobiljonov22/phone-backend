@@ -3,7 +3,7 @@ Ma'lumotlar bazasi xizmati
 Hozircha in-memory (xotirada) saqlanadi, keyinroq haqiqiy database ga o'zgartirish mumkin
 """
 from typing import Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import (
     ProductCreate, ProductResponse, CategoryCreate, CategoryResponse,
     CartItemCreate, CartItemResponse, OrderCreate, OrderResponse, OrderStatus,
@@ -1000,6 +1000,74 @@ def resend_verification_code(phone: str) -> Optional[str]:
         return None
     
     return send_verification_code(phone, user["id"])
+
+
+# ============ PASSWORD RESET FUNCTIONS ============
+# Password reset tokens database (email -> token_data)
+password_reset_tokens_db: Dict[str, dict] = {}  # email -> {token, expires_at, user_id}
+
+def generate_password_reset_token() -> str:
+    """Parolni tiklash uchun token yaratish"""
+    import secrets
+    return secrets.token_urlsafe(32)
+
+
+def send_password_reset_email(email: str, user_id: int) -> str:
+    """Parolni tiklash email yuborish (simulyatsiya)"""
+    token = generate_password_reset_token()
+    expires_at = datetime.now() + timedelta(hours=1)  # 1 soat amal qiladi
+    
+    password_reset_tokens_db[email] = {
+        "token": token,
+        "expires_at": expires_at,
+        "user_id": user_id,
+        "created_at": datetime.now()
+    }
+    
+    # Simulyatsiya - haqiqiy loyihada email yuboriladi
+    print(f"📧 Email yuborildi {email} ga: Parolni tiklash linki: http://localhost:3000/reset-password?token={token}")
+    
+    return token
+
+
+def verify_password_reset_token(token: str) -> Optional[dict]:
+    """Parolni tiklash tokenini tekshirish"""
+    for email, token_data in password_reset_tokens_db.items():
+        if token_data["token"] == token:
+            # Token muddati o'tganmi tekshirish
+            if datetime.now() > token_data["expires_at"]:
+                del password_reset_tokens_db[email]
+                return None
+            return token_data
+    return None
+
+
+def reset_user_password(user_id: int, new_password: str) -> bool:
+    """Foydalanuvchi parolini yangilash"""
+    if user_id not in users_db:
+        return False
+    
+    users_db[user_id]["password_hash"] = hash_password(new_password)
+    
+    # Tokenlarni tozalash
+    tokens_to_remove = []
+    for email, token_data in password_reset_tokens_db.items():
+        if token_data["user_id"] == user_id:
+            tokens_to_remove.append(email)
+    
+    for email in tokens_to_remove:
+        del password_reset_tokens_db[email]
+    
+    return True
+
+
+def forgot_password(email: str) -> Optional[str]:
+    """Parolni unutish - email ga tiklash link yuborish"""
+    user = get_user_by_email(email)
+    if not user:
+        return None
+    
+    return send_password_reset_email(email, user.id)
 
 
 # ============ DELIVERY ADDRESS FUNCTIONS ============

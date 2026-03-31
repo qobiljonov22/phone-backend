@@ -352,6 +352,23 @@ class ResendCodeRequest(BaseModel):
     phone: str = Field(..., description="Telefon raqami")
 
 
+class ForgotPasswordRequest(BaseModel):
+    """Parolni unutish so'rovi"""
+    email: str = Field(..., description="Email manzil")
+
+
+class ResetPasswordRequest(BaseModel):
+    """Parolni tiklash so'rovi"""
+    token: str = Field(..., description="Tiklash tokeni")
+    new_password: str = Field(..., min_length=6, description="Yangi parol (kamida 6 belgi)")
+
+
+class ResetPasswordResponse(BaseModel):
+    """Parolni tiklash javobi"""
+    message: str
+    success: bool
+
+
 class DeliveryAddressCreate(BaseModel):
     """Yetkazib berish manzili yaratish"""
     address: str = Field(..., min_length=5, description="To'liq manzil")
