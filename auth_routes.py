@@ -201,7 +201,7 @@ def forgot_password_endpoint(request: ForgotPasswordRequest):
     try:
         token = forgot_password(request.email)
         if not token:
-            # Xavfsizlik uchun email topilmasa ham xuddi shu xabarni qaytaramiz
+            # Xavfsizlik uchun email topilmasa ham xuddi shu xabarni qaytadi
             return MessageResponse(
                 message="Agar bu email ro'yxatdan o'tgan bo'lsa, parolni tiklash linki yuborildi",
                 success=True
