@@ -8,7 +8,8 @@ from models import (
     RegistrationRequest, LoginRequest, TokenResponse, UserResponse,
     VerificationRequest, VerificationResponse, ResendCodeRequest, MessageResponse,
     DeliveryAddressCreate, DeliveryAddressResponse,
-    ForgotPasswordRequest, ResetPasswordRequest, ResetPasswordResponse
+    ForgotPasswordRequest, ResetPasswordRequest, ResetPasswordResponse,
+    UserRole
 )
 from database import (
     create_user, authenticate_user, verify_user_phone, send_verification_code,
@@ -28,20 +29,21 @@ def register_user(registration: RegistrationRequest):
     
     - **username**: Foydalanuvchi nomi (majburiy, kamida 3 belgi)
     - **email**: Email manzil (majburiy)
-    - **phone**: Telefon raqami (majburiy)
-    - **password**: Parol (majburiy, kamida 6 belgi)
+    - **phone**: Telefon raqami (ixtiyoriy)
+    - **password**: Parol (majburiy, 8-12 belgi)
     - **full_name**: To'liq ism (majburiy, kamida 2 belgi)
     
-    Telefon raqamiga tasdiqlovchi kod yuboriladi
+    User darhol avtomatik tasdiqlanadi
     """
     try:
         user = create_user(registration)
         
-        # Tasdiqlovchi kod yuborish
-        code = send_verification_code(user.phone, user.id)
+        # User ni darhol tasdiqlash (telefon raqami bo'lmasa ham)
+        if not user.is_verified:
+            users_db[user.id]["is_verified"] = True
         
         return MessageResponse(
-            message=f"Ro'yxatdan muvaffaqiyatli o'tdingiz! {user.phone} raqamiga tasdiqlovchi kod yuborildi.",
+            message=f"Ro'yxatdan muvaffaqiyatli o'tdingiz! Endi login qilishingiz mumkin.",
             success=True
         )
     except ValueError as e:
@@ -126,6 +128,50 @@ def login(login_data: LoginRequest):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Noto'g'ri username/email yoki parol"
+        )
+    
+    # JWT token yaratish
+    access_token = create_access_token(data={"sub": user.id})
+    
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=user
+    )
+
+
+@router.post("/admin-login", response_model=TokenResponse)
+def admin_login(
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    """
+    Admin uchun login (faqat bitta login va parol)
+    
+    - **username**: Admin username (majburiy)
+    - **password**: Admin parol (majburiy)
+    
+    Faqat admin uchun maxsus login
+    """
+    if not username:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username ko'rsatilishi kerak"
+        )
+    
+    user = authenticate_user(username, password)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Noto'g'ri admin login yoki parol"
+        )
+    
+    # Admin ekanligini tekshirish
+    if user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu endpoint faqat adminlar uchun"
         )
     
     # JWT token yaratish
