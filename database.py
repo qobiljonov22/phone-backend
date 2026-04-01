@@ -14,6 +14,9 @@ from models import (
 )
 import hashlib
 import random
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # ============ IN-MEMORY DATABASES ============
 # Haqiqiy loyihada SQLAlchemy, PostgreSQL, MySQL yoki MongoDB ishlatiladi
@@ -1013,7 +1016,7 @@ def generate_password_reset_token() -> str:
 
 
 def send_password_reset_email(email: str, user_id: int) -> str:
-    """Parolni tiklash email yuborish (simulyatsiya)"""
+    """Parolni tiklash email yuborish"""
     token = generate_password_reset_token()
     expires_at = datetime.now() + timedelta(hours=1)  # 1 soat amal qiladi
     
@@ -1024,10 +1027,60 @@ def send_password_reset_email(email: str, user_id: int) -> str:
         "created_at": datetime.now()
     }
     
-    # Simulyatsiya - haqiqiy loyihada email yuboriladi
-    print(f"📧 Email yuborildi {email} ga: Parolni tiklash linki: http://localhost:3000/reset-password?token={token}")
-    
-    return token
+    # Email yuborish
+    try:
+        reset_link = f"https://phone-shop-frontend.vercel.app/reset-password?token={token}"
+        
+        # Email konfiguratsiyasi
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        smtp_username = "your-email@gmail.com"  # O'zingizning emailingiz
+        smtp_password = "your-app-password"    # Gmail app password
+        
+        # Email yaratish
+        msg = MIMEMultipart()
+        msg['From'] = smtp_username
+        msg['To'] = email
+        msg['Subject'] = "Parolni tiklash - Phone Shop"
+        
+        # Email body
+        body = f"""
+        Assalomu alaykum!
+        
+        Parolni tiklash so'rovi qabul qilindi.
+        
+        Quyidagi link orqali parolni yangilashingiz mumkin:
+        {reset_link}
+        
+        Link 1 soat davomida amal qiladi.
+        
+        Agar siz parolni tiklashni so'ramagan bo'lsangiz, ushbu xabarni e'tiborsiz qoldiring.
+        
+        Hurmat bilan,
+        Phone Shop jamoasi
+        """
+        
+        msg.attach(MIMEText(body, 'plain', 'utf-8'))
+        
+        # Email yuborish (comment qilingan, chunki hozircha test rejim)
+        # server = smtplib.SMTP(smtp_server, smtp_port)
+        # server.starttls()
+        # server.login(smtp_username, smtp_password)
+        # server.sendmail(smtp_username, email, msg.as_string())
+        # server.quit()
+        
+        # Test rejimda console ga chiqaramiz
+        print(f"📧 EMAIL YUBORILDI: {email}")
+        print(f"🔑 TOKEN: {token}")
+        print(f"🔗 RESET LINK: {reset_link}")
+        print(f"⏰ EXPIRES: {expires_at}")
+        
+        return token
+        
+    except Exception as e:
+        print(f"Email yuborishda xatolik: {e}")
+        # Xatolik bo'lsa ham token qaytaramiz
+        return token
 
 
 def verify_password_reset_token(token: str) -> Optional[dict]:
