@@ -29,7 +29,7 @@ def register_user(registration: RegistrationRequest):
     
     - **username**: Foydalanuvchi nomi (majburiy, kamida 3 belgi)
     - **email**: Email manzil (majburiy)
-    - **phone**: Telefon raqami (ixtiyoriy)
+    - **phone**: Telefon raqami (majburiy)
     - **password**: Parol (majburiy, 8-12 belgi)
     - **full_name**: To'liq ism (majburiy, kamida 2 belgi)
     
@@ -38,7 +38,7 @@ def register_user(registration: RegistrationRequest):
     try:
         user = create_user(registration)
         
-        # User ni darhol tasdiqlash (telefon raqami bo'lmasa ham)
+        # User ni darhol tasdiqlash
         if not user.is_verified:
             users_db[user.id]["is_verified"] = True
         

@@ -294,7 +294,7 @@ class UserBase(BaseModel):
     """Foydalanuvchi uchun asosiy model"""
     username: str = Field(..., min_length=3, description="Foydalanuvchi nomi")
     email: str = Field(..., description="Email manzil")
-    phone: Optional[str] = Field(None, description="Telefon raqami (ixtiyoriy)")
+    phone: str = Field(..., description="Telefon raqami")
     full_name: str = Field(..., min_length=2, description="To'liq ism")
 
 

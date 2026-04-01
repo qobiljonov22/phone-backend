@@ -793,7 +793,7 @@ def create_user(user: UserCreate, role: UserRole = UserRole.USER) -> UserRespons
         "id": users_counter,
         "username": user.username,
         "email": user.email,
-        "phone": user.phone or "",  # Telefon raqami bo'lmasa bo'sh string
+        "phone": user.phone,  # Telefon raqami majburiy
         "full_name": user.full_name,
         "password_hash": hash_password(user.password),
         "role": role,
