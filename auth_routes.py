@@ -37,7 +37,7 @@ def register_user(registration: RegistrationRequest):
     try:
         user = create_user(registration)
         
-        # Tasdiqlovchi kod yuborish
+        # Tasdiqlovchi kod yuborishs
         code = send_verification_code(user.phone, user.id)
         
         return MessageResponse(
