@@ -2,7 +2,7 @@
 Authentication endpointlar
 Registration, Login, Verification va boshqalar
 """
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Form
 from typing import List, Optional
 from models import (
     RegistrationRequest, LoginRequest, TokenResponse, UserResponse,
@@ -126,6 +126,43 @@ def login(login_data: LoginRequest):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Noto'g'ri username/email yoki parol"
+        )
+    
+    # JWT token yaratish
+    access_token = create_access_token(data={"sub": user.id})
+    
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=user
+    )
+
+
+@router.post("/login-email", response_model=TokenResponse)
+def login_with_email(
+    email: str = Form(...),
+    password: str = Form(...)
+):
+    """
+    Email va parol bilan kirish (soddalashtirilgan)
+    
+    - **email**: Email manzil (majburiy)
+    - **password**: Parol (majburiy)
+    
+    Faqat email va parol bilan kirish
+    """
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email ko'rsatilishi kerak"
+        )
+    
+    user = authenticate_user(email, password)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Noto'g'ri email yoki parol"
         )
     
     # JWT token yaratish
