@@ -201,11 +201,18 @@ def forgot_password_endpoint(request: ForgotPasswordRequest):
     try:
         token = forgot_password(request.email)
         if not token:
-            # Xavfsizlik uchun email topilmasa ham xuddi shu xabarni qaytadi
+            # Xavfsizlik uchun email topilmasa ham xuddi shu xabarni qaytaramiz
             return MessageResponse(
                 message="Agar bu email ro'yxatdan o'tgan bo'lsa, parolni tiklash linki yuborildi",
                 success=True
             )
+        
+        # Tokenni console ga chiqarish (test uchun)
+        print(f"\n🔓 FORGOT PASSWORD TOKEN:")
+        print(f"📧 Email: {request.email}")
+        print(f"🔑 Token: {token}")
+        print(f"🔗 Reset link: http://localhost:8000/reset-password?token={token}")
+        print(f"⏰ Token expires in 1 hour\n")
         
         return MessageResponse(
             message="Parolni tiklash linki emailingizga yuborildi. Emailni tekshiring",
@@ -256,3 +263,25 @@ def reset_password_endpoint(request: ResetPasswordRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring"
         )
+
+
+@router.get("/debug/reset-tokens", tags=["Debug"])
+def get_active_reset_tokens():
+    """
+    Faol parolni tiklash tokenlarini ko'rish (faqat test uchun)
+    """
+    from database import password_reset_tokens_db
+    
+    tokens = []
+    for email, data in password_reset_tokens_db.items():
+        tokens.append({
+            "email": email,
+            "token": data["token"],
+            "expires_at": data["expires_at"].isoformat(),
+            "user_id": data["user_id"]
+        })
+    
+    return {
+        "active_tokens": tokens,
+        "total": len(tokens)
+    }
