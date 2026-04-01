@@ -386,111 +386,28 @@ def initialize_sample_data():
     ))
     
     create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
+        name="Samsung Galaxy S23",
+        description="Eng yangi Samsung flagship",
+        price=899900.0,
         storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        category_id=category2.id,
+        image_url="https://images.samsung.com/is/image/samsung/p6pim/levant/2302/gallery/levant-sm-s911b-sm-s911bzdxme-535923677?$720_576_PNG$",
         in_stock=True
     ))
     
     create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
-        storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
-        in_stock=True
-    ))
-    create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
-        storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
+        name="Samsung Galaxy S23 Ultra",
+        description="Ultra versiyasi, S Pen bilan",
+        price=1499000.0,
+        storage="512 GB",
+        category_id=category2.id,
+        image_url="https://images.samsung.com/is/image/samsung/p6pim/levant/2302/gallery/levant-sm-s918b-sm-s918bzdxme-535923674?$720_576_PNG$",
         in_stock=True
     ))
     
-    create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
-        storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
-        in_stock=True
-    ))
+    print("✅ Namuna ma'lumotlar bilan to'ldirildi")
     
-    create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
-        storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
-        in_stock=True
-    ))
-    
-    create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
-        storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
-        in_stock=True
-    ))
-    
-    create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
-        storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
-        in_stock=True
-    ))
-    
-    create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
-        storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
-        in_stock=True
-    ))
-    create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
-        storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
-        in_stock=True
-    ))
-    create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
-        storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
-        in_stock=True
-    ))
-    create_product(ProductCreate(
-        name="iPhone 14 Pro Max",
-        description="Pro Max versiyasi, kuchli protsessor va katta ekran",
-        price=1200000.0,
-        storage="256 GB",
-        category_id=category1.id,
-        image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
-        in_stock=True
-    ))
-    
+    # return None
 
 
 # ============ REVIEW FUNCTIONS ============
@@ -1031,46 +948,54 @@ def send_password_reset_email(email: str, user_id: int) -> str:
     try:
         reset_link = f"https://phone-shop-frontend.vercel.app/reset-password?token={token}"
         
-        # Email konfiguratsiyasi
-        smtp_server = "smtp.gmail.com"
-        smtp_port = 587
-        smtp_username = "your-email@gmail.com"  # O'zingizning emailingiz
-        smtp_password = "your-app-password"    # Gmail app password
+        # Environment variables dan olish
+        import os
+        smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        smtp_username = os.getenv("SMTP_USERNAME", "")
+        smtp_password = os.getenv("SMTP_PASSWORD", "")
         
-        # Email yaratish
-        msg = MIMEMultipart()
-        msg['From'] = smtp_username
-        msg['To'] = email
-        msg['Subject'] = "Parolni tiklash - Phone Shop"
+        # Agar SMTP konfiguratsiyasi bo'lsa, email yuborish
+        if smtp_username and smtp_password:
+            # Email yaratish
+            msg = MIMEMultipart()
+            msg['From'] = smtp_username
+            msg['To'] = email
+            msg['Subject'] = "Parolni tiklash - Phone Shop"
+            
+            # Email body
+            body = f"""
+Assalomu alaykum!
+
+Parolni tiklash so'rovi qabul qilindi.
+
+Quyidagi link orqali parolni yangilashingiz mumkin:
+{reset_link}
+
+Link 1 soat davomida amal qiladi.
+
+Agar siz parolni tiklashni so'ramagan bo'lsangiz, ushbu xabarni e'tiborsiz qoldiring.
+
+Hurmat bilan,
+Phone Shop jamoasi
+"""
+            
+            msg.attach(MIMEText(body, 'plain', 'utf-8'))
+            
+            # Email yuborish
+            import smtplib
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.sendmail(smtp_username, email, msg.as_string())
+            server.quit()
+            
+            print(f"📧 EMAIL YUBORILDI: {email}")
+        else:
+            # SMTP konfiguratsiyasi bo'lmasa, console ga chiqaramiz
+            print(f"📧 EMAIL CONFIG YO'Q - Console ga chiqariladi: {email}")
         
-        # Email body
-        body = f"""
-        Assalomu alaykum!
-        
-        Parolni tiklash so'rovi qabul qilindi.
-        
-        Quyidagi link orqali parolni yangilashingiz mumkin:
-        {reset_link}
-        
-        Link 1 soat davomida amal qiladi.
-        
-        Agar siz parolni tiklashni so'ramagan bo'lsangiz, ushbu xabarni e'tiborsiz qoldiring.
-        
-        Hurmat bilan,
-        Phone Shop jamoasi
-        """
-        
-        msg.attach(MIMEText(body, 'plain', 'utf-8'))
-        
-        # Email yuborish (comment qilingan, chunki hozircha test rejim)
-        # server = smtplib.SMTP(smtp_server, smtp_port)
-        # server.starttls()
-        # server.login(smtp_username, smtp_password)
-        # server.sendmail(smtp_username, email, msg.as_string())
-        # server.quit()
-        
-        # Test rejimda console ga chiqaramiz
-        print(f"📧 EMAIL YUBORILDI: {email}")
+        # Har holda ham console ga chiqaramiz (test uchun)
         print(f"🔑 TOKEN: {token}")
         print(f"🔗 RESET LINK: {reset_link}")
         print(f"⏰ EXPIRES: {expires_at}")
