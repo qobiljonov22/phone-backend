@@ -294,13 +294,13 @@ class UserBase(BaseModel):
     """Foydalanuvchi uchun asosiy model"""
     username: str = Field(..., min_length=3, description="Foydalanuvchi nomi")
     email: str = Field(..., description="Email manzil")
-    phone: str = Field(..., description="Telefon raqami")
+    phone: Optional[str] = Field(None, description="Telefon raqami (ixtiyoriy)")
     full_name: str = Field(..., min_length=2, description="To'liq ism")
 
 
 class UserCreate(UserBase):
     """Yangi foydalanuvchi yaratish uchun model"""
-    password: str = Field(..., min_length=8, max_length=12, description="Parol (8-12 belgi orasida)")
+    password: str = Field(..., min_length=6, max_length=12, description="Parol (6-12 belgi orasida)")
 
 
 class UserResponse(UserBase):
