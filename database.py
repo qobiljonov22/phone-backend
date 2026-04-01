@@ -797,7 +797,7 @@ def create_user(user: UserCreate, role: UserRole = UserRole.USER) -> UserRespons
         "full_name": user.full_name,
         "password_hash": hash_password(user.password),
         "role": role,
-        "is_verified": True,  # Darhol tasdiqlanadi
+        "is_verified": False,  # SMS tasdiqlash kerak
         "created_at": datetime.now()
     }
     

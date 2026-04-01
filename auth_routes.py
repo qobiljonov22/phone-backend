@@ -33,17 +33,16 @@ def register_user(registration: RegistrationRequest):
     - **password**: Parol (majburiy, 8-12 belgi)
     - **full_name**: To'liq ism (majburiy, kamida 2 belgi)
     
-    User darhol avtomatik tasdiqlanadi
+    Telefon raqamiga 6 xonali tasdiqlovchi kod yuboriladi
     """
     try:
         user = create_user(registration)
         
-        # User ni darhol tasdiqlash
-        if not user.is_verified:
-            users_db[user.id]["is_verified"] = True
+        # Tasdiqlovchi kod yuborish
+        code = send_verification_code(user.phone, user.id)
         
         return MessageResponse(
-            message=f"Ro'yxatdan muvaffaqiyatli o'tdingiz! Endi login qilishingiz mumkin.",
+            message=f"Ro'yxatdan muvaffaqiyatli o'tdingiz! {user.phone} raqamiga 6 xonali tasdiqlovchi kod yuborildi.",
             success=True
         )
     except ValueError as e:
@@ -195,7 +194,7 @@ def login_with_email(
     - **email**: Email manzil (majburiy)
     - **password**: Parol (majburiy)
     
-    Faqat email va parol bilan kirish
+    Faqat tasdiqlangan foydalanuvchilar kirishi mumkin
     """
     if not email:
         raise HTTPException(
@@ -209,6 +208,13 @@ def login_with_email(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Noto'g'ri email yoki parol"
+        )
+    
+    # Tasdiqlanganligini tekshirish
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Avval telefon raqamingizni tasdiqlashingiz kerak"
         )
     
     # JWT token yaratish
