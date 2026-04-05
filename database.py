@@ -407,48 +407,48 @@ def initialize_sample_data():
     
     # Yangi mahsulotlar qo'shish
     create_product(ProductCreate(
-        name="iPhone 13",
-        description="iPhone 13 - A15 Bionic chip, 5G support",
+        name="iPhone 14",
+        description="iPhone 14 - A15 Bionic chip, 5G support",
         price=629900.0,
         storage="128 GB",
         category_id=category1.id,
-        image_url="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&h=600&fit=crop",
+        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
     
     create_product(ProductCreate(
-        name="iPhone 15 Pro",
-        description="iPhone 15 Pro - Titanium design, A17 Pro chip",
+        name="iPhone 14 Pro",
+        description="iPhone 14 Pro - Titanium design, A16 Bionic chip",
         price=1399000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://images.unsplash.com/photo-1592286115803-a1c3b552ee43?w=800&h=600&fit=crop",
+        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
     
     create_product(ProductCreate(
-        name="Samsung Galaxy S24",
-        description="Samsung Galaxy S24 - AI features, powerful performance",
+        name="iPhone 14",
+        description="iPhone 14 - A15 Bionic chip, 5G support",
         price=979900.0,
         storage="256 GB",
-        category_id=category2.id,
-        image_url="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=800&h=600&fit=crop",
+        category_id=category1.id,
+        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
     
     create_product(ProductCreate(
-        name="Samsung Galaxy S24 Ultra",
-        description="Samsung Galaxy S24 Ultra - S Pen, AI camera, premium design",
+        name="iPhone 14 Pro Max",
+        description="iPhone 14 Pro Max - Titanium design, A16 Bionic chip",
         price=1699000.0,
         storage="512 GB",
-        category_id=category2.id,
-        image_url="https://images.unsplash.com/photo-1610945415485-78e9e802c0a2?w=800&h=600&fit=crop",
+        category_id=category1.id,
+        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
     
     create_product(ProductCreate(
-        name="iPhone 15",
-        description="iPhone 15 - Dynamic Island, USB-C, A16 Bionic chip",
+        name="iphone 14 pro max",
+        description="iphone 14 pro max - Dynamic Island, USB-C, A16 Bionic chip",
         price=999000.0,
         storage="128 GB",
         category_id=category1.id,
@@ -457,12 +457,12 @@ def initialize_sample_data():
     ))
     
     create_product(ProductCreate(
-        name="iPhone 15 Pro Max",
-        description="iPhone 15 Pro Max - Largest display, best camera system",
+        name="iPhone 14 Pro Max",
+        description="iPhone 14 Pro Max - Titanium design, A16 Bionic chip",
         price=1599000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=600&fit=crop",
+        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
     
