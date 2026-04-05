@@ -144,12 +144,12 @@ def admin_login(
     password: str = Form(...)
 ):
     """
-    Admin uchun login (faqat bitta login va parol)
+    Admin va sayt egasi uchun login
     
     - **username**: Admin username (majburiy)
     - **password**: Admin parol (majburiy)
     
-    Faqat admin uchun maxsus login
+    Faqat bitta admin login va paroli bilan kirish
     """
     if not username:
         raise HTTPException(
@@ -169,7 +169,7 @@ def admin_login(
     if user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu endpoint faqat adminlar uchun"
+            detail="Bu endpoint faqat admin va sayt egasi uchun"
         )
     
     # JWT token yaratish

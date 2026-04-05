@@ -412,7 +412,7 @@ def initialize_sample_data():
         price=629900.0,
         storage="128 GB",
         category_id=category1.id,
-        image_url="https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-13-finish-select-202203-blue?wid=3200&hei=1800&fmt=jpeg&qlt=95&.v=1646083216900",
+        image_url="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&h=600&fit=crop",
         in_stock=True
     ))
     
@@ -422,7 +422,7 @@ def initialize_sample_data():
         price=1399000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-1inch-naturaltitanium?wid=3200&hei=1800&fmt=jpeg&qlt=95&.v=1693016289892",
+        image_url="https://images.unsplash.com/photo-1592286115803-a1c3b552ee43?w=800&h=600&fit=crop",
         in_stock=True
     ))
     
@@ -432,7 +432,7 @@ def initialize_sample_data():
         price=979900.0,
         storage="256 GB",
         category_id=category2.id,
-        image_url="https://images.samsung.com/is/image/samsung/p6pim/levant/2401/gallery/levant-sm-s921-sm-s921bzdxme-539928282?$720_576_PNG$",
+        image_url="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=800&h=600&fit=crop",
         in_stock=True
     ))
     
@@ -442,7 +442,7 @@ def initialize_sample_data():
         price=1699000.0,
         storage="512 GB",
         category_id=category2.id,
-        image_url="https://images.samsung.com/is/image/samsung/p6pim/levant/2401/gallery/levant-sm-s928-sm-s928bzdxme-539928285?$720_576_PNG$",
+        image_url="https://images.unsplash.com/photo-1610945415485-78e9e802c0a2?w=800&h=600&fit=crop",
         in_stock=True
     ))
     
@@ -452,7 +452,7 @@ def initialize_sample_data():
         price=1599000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-max-finish-select-202309-6-7inch-naturaltitanium?wid=3200&hei=1800&fmt=jpeg&qlt=95&.v=1693016292398",
+        image_url="https://images.unsplash.com/photo-1592286115803-a1c3b552ee43?w=800&h=600&fit=crop",
         in_stock=True
     ))
     
