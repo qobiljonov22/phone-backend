@@ -272,7 +272,7 @@ def create_one_click_order(request: OneClickBuyRequest) -> OrderResponse:
     if not product.in_stock:
         raise ValueError(f"Mahsulot omborda yo'q: {product.name}")
     
-    # Jami narxni hisoblash
+    # Jami narxni Hisoblash
     total_price = product.price * request.quantity
     
     # Cart item yaratish (buyurtma uchun)
