@@ -405,6 +405,57 @@ def initialize_sample_data():
         in_stock=True
     ))
     
+    # Yangi mahsulotlar qo'shish
+    create_product(ProductCreate(
+        name="iPhone 13",
+        description="iPhone 13 - A15 Bionic chip, 5G support",
+        price=629900.0,
+        storage="128 GB",
+        category_id=category1.id,
+        image_url="https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-13-finish-select-202203-blue?wid=3200&hei=1800&fmt=jpeg&qlt=95&.v=1646083216900",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
+        name="iPhone 15 Pro",
+        description="iPhone 15 Pro - Titanium design, A17 Pro chip",
+        price=1399000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-1inch-naturaltitanium?wid=3200&hei=1800&fmt=jpeg&qlt=95&.v=1693016289892",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
+        name="Samsung Galaxy S24",
+        description="Samsung Galaxy S24 - AI features, powerful performance",
+        price=979900.0,
+        storage="256 GB",
+        category_id=category2.id,
+        image_url="https://images.samsung.com/is/image/samsung/p6pim/levant/2401/gallery/levant-sm-s921-sm-s921bzdxme-539928282?$720_576_PNG$",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
+        name="Samsung Galaxy S24 Ultra",
+        description="Samsung Galaxy S24 Ultra - S Pen, AI camera, premium design",
+        price=1699000.0,
+        storage="512 GB",
+        category_id=category2.id,
+        image_url="https://images.samsung.com/is/image/samsung/p6pim/levant/2401/gallery/levant-sm-s928-sm-s928bzdxme-539928285?$720_576_PNG$",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
+        name="iPhone 15 Pro Max",
+        description="iPhone 15 Pro Max - Largest display, best camera system",
+        price=1599000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-max-finish-select-202309-6-7inch-naturaltitanium?wid=3200&hei=1800&fmt=jpeg&qlt=95&.v=1693016292398",
+        in_stock=True
+    ))
+    
     print("✅ Namuna ma'lumotlar bilan to'ldirildi")
     
     # return None
