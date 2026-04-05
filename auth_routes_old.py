@@ -84,19 +84,17 @@ def resend_verification_code_endpoint(request: ResendCodeRequest):
     Tasdiqlovchi kodni qayta yuborish
     
     - **phone**: Telefon raqami (majburiy)
-    
-    Telefon raqamiga yangi 6 xonali kod yuboriladi
     """
     code = resend_verification_code(request.phone)
     
     if not code:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Bu telefon raqami ro'yxatdan o'tmagan"
         )
     
     return MessageResponse(
-        message=f"{request.phone} raqamiga yangi kod yuborildi",
+        message=f"Tasdiqlovchi kod {request.phone} raqamiga qayta yuborildi",
         success=True
     )
 
@@ -237,12 +235,12 @@ def create_user_delivery_address(
     current_user: UserResponse = Depends(get_current_active_user)
 ):
     """
-    Foydalanuvchi uchun yetkazib berish manzili yaratish
+    Yetkazib berish manzili yaratish
     
-    - **address**: Manzil (majburiy)
+    - **address**: To'liq manzil (majburiy)
     - **city**: Shahar (majburiy)
     - **postal_code**: Pochta indeksi (ixtiyoriy)
-    - **is_default**: Asosiy manzil ekanligi (ixtiyoriy)
+    - **is_default**: Asosiy manzil (default: False)
     """
     return create_delivery_address(current_user.id, address)
 
@@ -252,7 +250,7 @@ def get_user_delivery_addresses_endpoint(
     current_user: UserResponse = Depends(get_current_active_user)
 ):
     """
-    Foydalanuvchining barcha yetkazib berish manzillarini olish
+    Foydalanuvchining barcha manzillarini olish
     """
     return get_user_delivery_addresses(current_user.id)
 
@@ -262,7 +260,7 @@ def get_default_address(
     current_user: UserResponse = Depends(get_current_active_user)
 ):
     """
-    Foydalanuvchining asosiy yetkazib berish manzilini olish
+    Foydalanuvchining asosiy manzilini olish
     """
     return get_default_delivery_address(current_user.id)
 
@@ -276,19 +274,33 @@ def forgot_password_endpoint(request: ForgotPasswordRequest):
     
     - **email**: Email manzil (majburiy)
     
-    Email ga parolni tiklash linki yuboriladi
+    Email ga parolni tiklash linki yuboriladi.
+    Agar email ro'yxatdan o'tgan bo'lsa, tiklash linki yuboriladi.
     """
     try:
-        forgot_password(request.email)
+        token = forgot_password(request.email)
+        if not token:
+            # Xavfsizlik uchun email topilmasa ham xuddi shu xabarni qaytaramiz
+            return MessageResponse(
+                message="Agar bu email ro'yxatdan o'tgan bo'lsa, parolni tiklash linki yuborildi",
+                success=True
+            )
+        
+        # Tokenni console ga chiqarish (test uchun)
+        print(f"\n🔓 FORGOT PASSWORD TOKEN:")
+        print(f"📧 Email: {request.email}")
+        print(f"🔑 Token: {token}")
+        print(f"🔗 Reset link: http://localhost:8000/reset-password?token={token}")
+        print(f"⏰ Token expires in 1 hour\n")
         
         return MessageResponse(
-            message=f"Parolni tiklash linki {request.email} manziliga yuborildi",
+            message="Parolni tiklash linki emailingizga yuborildi. Emailni tekshiring",
             success=True
         )
-    except ValueError as e:
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring"
         )
 
 
@@ -297,22 +309,38 @@ def reset_password_endpoint(request: ResetPasswordRequest):
     """
     Parolni tiklash
     
-    - **token**: Parolni tiklash tokeni (majburiy)
-    - **new_password**: Yangi parol (majburiy, 8-12 belgi)
+    - **token**: Tiklash tokeni (majburiy)
+    - **new_password**: Yangi parol (kamida 6 belgi)
     
-    Token orqali parolni yangilash
+    Email orqali yuborilgan token orqali parolni yangilash
     """
     try:
-        user = reset_user_password(request.token, request.new_password)
+        # Tokenni tekshirish
+        token_data = verify_password_reset_token(request.token)
+        if not token_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Token noto'g'ri yoki muddati o'tgan"
+            )
+        
+        # Parolni yangilash
+        success = reset_user_password(token_data["user_id"], request.new_password)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Parolni yangilab bo'lmadi"
+            )
         
         return ResetPasswordResponse(
             message="Parol muvaffaqiyatli yangilandi!",
-            user=user
+            success=True
         )
-    except ValueError as e:
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring"
         )
 
 
@@ -323,17 +351,16 @@ def get_active_reset_tokens():
     """
     from database import password_reset_tokens_db
     
-    tokens_info = []
-    for email, token_data in password_reset_tokens_db.items():
-        tokens_info.append({
+    tokens = []
+    for email, data in password_reset_tokens_db.items():
+        tokens.append({
             "email": email,
-            "token": token_data["token"],
-            "expires_at": token_data["expires_at"],
-            "created_at": token_data["created_at"],
-            "user_id": token_data["user_id"]
+            "token": data["token"],
+            "expires_at": data["expires_at"].isoformat(),
+            "user_id": data["user_id"]
         })
     
     return {
-        "active_tokens": tokens_info,
-        "total_count": len(tokens_info)
+        "active_tokens": tokens,
+        "total": len(tokens)
     }
