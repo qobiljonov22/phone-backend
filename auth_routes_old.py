@@ -18,6 +18,8 @@ from database import (
     forgot_password, verify_password_reset_token, reset_user_password
 )
 from auth import create_access_token, get_current_active_user
+import smtplib
+from email.mime.text import MIMEText
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -269,41 +271,54 @@ def get_default_address(
 
 @router.post("/forgot-password", response_model=MessageResponse, status_code=status.HTTP_200_OK)
 def forgot_password_endpoint(request: ForgotPasswordRequest):
-    """
-    Parolni unutish
-    
-    - **email**: Email manzil (majburiy)
-    
-    Email ga parolni tiklash linki yuboriladi.
-    Agar email ro'yxatdan o'tgan bo'lsa, tiklash linki yuboriladi.
-    """
     try:
         token = forgot_password(request.email)
+
         if not token:
-            # Xavfsizlik uchun email topilmasa ham xuddi shu xabarni qaytaramiz
             return MessageResponse(
                 message="Agar bu email ro'yxatdan o'tgan bo'lsa, parolni tiklash linki yuborildi",
                 success=True
             )
-        
-        # Tokenni console ga chiqarish (test uchun)
+
+        # 🔗 FRONTEND LINK (IMPORTANT)
+        reset_link = f"http://localhost:5173/reset-password?token={token}"
+
+        # 📧 EMAIL YUBORISH
+        try:
+            sender_email = "yourgmail@gmail.com"
+            sender_password = "your_app_password"
+
+            msg = MIMEText(f"Parolni tiklash uchun link:\n{reset_link}")
+            msg["Subject"] = "Password Reset"
+            msg["From"] = sender_email
+            msg["To"] = request.email
+
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+
+        except Exception as email_error:
+            print("❌ Email yuborishda xatolik:", email_error)
+
+        # 🧪 Console (o‘chirmadik)
         print(f"\n🔓 FORGOT PASSWORD TOKEN:")
         print(f"📧 Email: {request.email}")
         print(f"🔑 Token: {token}")
-        print(f"🔗 Reset link: http://localhost:8000/reset-password?token={token}")
+        print(f"🔗 Reset link: {reset_link}")
         print(f"⏰ Token expires in 1 hour\n")
-        
+
         return MessageResponse(
             message="Parolni tiklash linki emailingizga yuborildi. Emailni tekshiring",
             success=True
         )
-    except Exception as e:
+
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring"
         )
 
-
+        
 @router.post("/reset-password", response_model=ResetPasswordResponse, status_code=status.HTTP_200_OK)
 def reset_password_endpoint(request: ResetPasswordRequest):
     """
