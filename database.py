@@ -452,7 +452,7 @@ def initialize_sample_data():
         price=999000.0,
         storage="128 GB",
         category_id=category1.id,
-        image_url="https://rifastore.ru/pictures/product/big/52755_big.jpg",
+        image_url="https://main.mobilezone.uz/product-attachment/1/-uWM1Egz32BI0yl7dVnSZ91UT5BrU6Db_2_2_2_2_2.jpg",
         in_stock=True
     ))
     
