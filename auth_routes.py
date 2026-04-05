@@ -27,11 +27,11 @@ def register_user(registration: RegistrationRequest):
     """
     Ro'yxatdan o'tish
     
-    - **username**: Foydalanuvchi nomi (majburiy, kamida 3 belgi)
     - **email**: Email manzil (majburiy)
-    - **phone**: Telefon raqami (ixtiyoriy)
     - **password**: Parol (majburiy, 8-12 belgi)
     - **full_name**: To'liq ism (majburiy, kamida 2 belgi)
+    - **username**: Foydalanuvchi nomi (ixtiyoriy)
+    - **phone**: Telefon raqami (ixtiyoriy)
     
     User darhol avtomatik tasdiqlanadi
     """
@@ -188,12 +188,12 @@ def login_with_email(
     password: str = Form(...)
 ):
     """
-    Email va parol bilan kirish (soddalashtirilgan)
+    Client login - Email va parol bilan kirish
     
-    - **email**: Email manzil (majburiy)
-    - **password**: Parol (majburiy)
+    - **email**: Client email manzili (majburiy)
+    - **password**: Client paroli (majburiy)
     
-    Email va parol bilan kirish
+    Har bir client o'zining email va paroli bilan kiradi
     """
     if not email:
         raise HTTPException(
