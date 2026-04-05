@@ -452,7 +452,7 @@ def initialize_sample_data():
         price=1599000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://images.unsplash.com/photo-1592286115803-a1c3b552ee43?w=800&h=600&fit=crop",
+        image_url="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=600&fit=crop",
         in_stock=True
     ))
     
