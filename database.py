@@ -447,6 +447,16 @@ def initialize_sample_data():
     ))
     
     create_product(ProductCreate(
+        name="iPhone 15",
+        description="iPhone 15 - Dynamic Island, USB-C, A16 Bionic chip",
+        price=999000.0,
+        storage="128 GB",
+        category_id=category1.id,
+        image_url="https://images.unsplash.com/photo-1592286115803-a1c3b552ee43?w=800&h=600&fit=crop",
+        in_stock=True
+    ))
+    
+    create_product(ProductCreate(
         name="iPhone 15 Pro Max",
         description="iPhone 15 Pro Max - Largest display, best camera system",
         price=1599000.0,
