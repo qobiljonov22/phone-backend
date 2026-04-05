@@ -452,7 +452,7 @@ def initialize_sample_data():
         price=999000.0,
         storage="128 GB",
         category_id=category1.id,
-        image_url="https://images.unsplash.com/photo-1592286115803-a1c3b552ee43?w=800&h=600&fit=crop",
+        image_url="https://rifastore.ru/pictures/product/big/52755_big.jpg",
         in_stock=True
     ))
     
