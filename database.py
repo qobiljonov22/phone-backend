@@ -502,6 +502,40 @@ def initialize_sample_data():
         in_stock=True
     ))
 
+
+    create_product(ProductCreate(
+        name="iPhone 14 Plus",
+        description="iPhone 14 Plus - Blue Titanium, A16 Bionic chip",
+        price=1599000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/uploads/products/photos/202603/dBbKTeT9RBcoIBoOkQFgG4uTKyjLopeI.jpg",
+        in_stock=True
+    ))
+
+    
+    create_product(ProductCreate(
+        name="iPhone 14 Plus",
+        description="iPhone 14 Plus - Blue Titanium, A16 Bionic chip",
+        price=1599000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/uploads/products/photos/202603/dBbKTeT9RBcoIBoOkQFgG4uTKyjLopeI.jpg",
+        in_stock=True
+    ))
+
+    
+    create_product(ProductCreate(
+        name="iPhone 14 Plus",
+        description="iPhone 14 Plus - Blue Titanium, A16 Bionic chip",
+        price=1599000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://asset.openshop.uz/uploads/products/photos/202603/dBbKTeT9RBcoIBoOkQFgG4uTKyjLopeI.jpg",
+        in_stock=True
+    ))
+
+    
     print("✅ Namuna ma'lumotlar bilan to'ldirildi")
 
 
