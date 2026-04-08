@@ -472,22 +472,33 @@ def initialize_sample_data():
     ))
 
     create_product(ProductCreate(
-        name="iPhone 15 Pro",
-        description="iPhone 15 Pro - Blue Titanium, A17 Pro chip",
+        name="iPhone 14 Pro",
+        description="iPhone 14 Pro - Black Titanium, A17 Pro chip",
         price=1399000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://images.unsplash.com/photo-1592286115803-a1c3b552ee43?w=800&h=600&fit=crop",
+        image_url="https://www.imagineonline.store/cdn/shop/files/iPhone_14_Pro_Space_Black_PDP_Image_Position-1a__WWEN.jpg?v=1759733643&width=1680",
         in_stock=True
     ))
 
     create_product(ProductCreate(
-        name="iPhone 15 Pro Max",
-        description="iPhone 15 Pro Max - Natural Titanium, A17 Pro chip",
+        name="iPhone 14 Pro",
+        description="iPhone 14 Pro - Black Titanium, A17 Pro chip",
+        price=1399000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://www.imagineonline.store/cdn/shop/files/iPhone_14_Pro_Space_Black_PDP_Image_Position-1a__WWEN.jpg?v=1759733643&width=1680",
+        in_stock=True
+    ))
+
+
+    create_product(ProductCreate(
+        name="iPhone 14 Plus",
+        description="iPhone 14 Plus - Blue Titanium, A16 Bionic chip",
         price=1599000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=600&fit=crop",
+        image_url="https://asset.openshop.uz/uploads/products/photos/202603/dBbKTeT9RBcoIBoOkQFgG4uTKyjLopeI.jpg",
         in_stock=True
     ))
 
