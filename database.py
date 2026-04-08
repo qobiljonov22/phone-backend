@@ -390,24 +390,26 @@ def initialize_sample_data():
     ))
 
     create_product(ProductCreate(
-        name="Samsung Galaxy S23",
-        description="Eng yangi Samsung flagship",
-        price=899900.0,
-        storage="256 GB",
+        name="Apple ipad pro 11",
+        description="Apple ipad pro 11 - A15 Bionic chip, 5G support",
+        price=1299900.0,
+        storage="128 GB",
         category_id=category2.id,
-        image_url="https://images.samsung.com/is/image/samsung/p6pim/levant/2302/gallery/levant-sm-s911b-sm-s911bzdxme-535923677?$720_576_PNG$",
+        image_url="https://asset.openshop.uz/uploads/products/photos/202603/nnpPZVeqRXS02YJ88xm3eRm2IHUuJoH7.png",
         in_stock=True
     ))
 
+
     create_product(ProductCreate(
-        name="Samsung Galaxy S23 Ultra",
-        description="Ultra versiyasi, S Pen bilan",
-        price=1499000.0,
-        storage="512 GB",
+        name="Apple ipad pro 12",
+        description="Apple ipad pro 12 - A15 Bionic chip, 5G support",
+        price=1299900.0,
+        storage="128 GB",
         category_id=category2.id,
-        image_url="https://images.samsung.com/is/image/samsung/p6pim/levant/2302/gallery/levant-sm-s918b-sm-s918bzdxme-535923674?$720_576_PNG$",
+        image_url="https://assets.asaxiy.uz/product/items/desktop/5e4d3567249d0d36a925d7fdecd8bc902025010520254992105L0105ncZuL.webp",
         in_stock=True
     ))
+
 
     create_product(ProductCreate(
         name="iPhone 14",
@@ -465,11 +467,32 @@ def initialize_sample_data():
         price=1599000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://castore.uz/upload/iblock/180/45c3p3z221jx63kvu9d0391inf7fbzxj/smartfon-iphone-14-128gb-midnight.webp",
+        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
+        in_stock=True
+    ))
+
+    create_product(ProductCreate(
+        name="iPhone 15 Pro",
+        description="iPhone 15 Pro - Blue Titanium, A17 Pro chip",
+        price=1399000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://images.unsplash.com/photo-1592286115803-a1c3b552ee43?w=800&h=600&fit=crop",
+        in_stock=True
+    ))
+
+    create_product(ProductCreate(
+        name="iPhone 15 Pro Max",
+        description="iPhone 15 Pro Max - Natural Titanium, A17 Pro chip",
+        price=1599000.0,
+        storage="256 GB",
+        category_id=category1.id,
+        image_url="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=600&fit=crop",
         in_stock=True
     ))
 
     print("✅ Namuna ma'lumotlar bilan to'ldirildi")
+
 
 
 # ============ REVIEW FUNCTIONS ============
