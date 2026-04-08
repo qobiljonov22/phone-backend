@@ -18,6 +18,12 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = 587
+SMTP_USER = "sizning_emailingiz@gmail.com"       # ← haqiqiy email
+SMTP_PASSWORD = "xxxx xxxx xxxx xxxx"            # ← Gmail App Password (16 belgi)
+
+
 # ============ IN-MEMORY DATABASES ============
 # Haqiqiy loyihada SQLAlchemy, PostgreSQL, MySQL yoki MongoDB ishlatiladi
 
@@ -67,13 +73,16 @@ delivery_addresses_counter = 0
 videos_db: Dict[int, dict] = {}
 videos_counter = 0
 
+# Password reset tokens database
+password_reset_tokens_db: Dict[str, dict] = {}  # email -> {token, expires_at, user_id}
+
 
 # ============ PRODUCT FUNCTIONS ============
 def create_product(product: ProductCreate) -> ProductResponse:
     """Yangi mahsulot yaratish"""
     global products_counter
     products_counter += 1
-    
+
     product_data = {
         "id": products_counter,
         "name": product.name,
@@ -85,7 +94,7 @@ def create_product(product: ProductCreate) -> ProductResponse:
         "in_stock": product.in_stock,
         "created_at": datetime.now()
     }
-    
+
     products_db[products_counter] = product_data
     return ProductResponse(**product_data)
 
@@ -101,10 +110,10 @@ def get_product(product_id: int) -> Optional[ProductResponse]:
 def get_all_products(category_id: Optional[int] = None) -> List[ProductResponse]:
     """Barcha mahsulotlarni olish (kategoriya bo'yicha filtrlash mumkin)"""
     products = list(products_db.values())
-    
+
     if category_id:
         products = [p for p in products if p.get("category_id") == category_id]
-    
+
     return [ProductResponse(**p) for p in products]
 
 
@@ -112,13 +121,12 @@ def search_products(query: str) -> List[ProductResponse]:
     """Mahsulotlarni qidirish"""
     query_lower = query.lower()
     results = []
-    
+
     for product in products_db.values():
-        # Nom, tavsif yoki boshqa maydonlarda qidirish
-        if (query_lower in product["name"].lower() or 
-            (product["description"] and query_lower in product["description"].lower())):
+        if (query_lower in product["name"].lower() or
+                (product["description"] and query_lower in product["description"].lower())):
             results.append(ProductResponse(**product))
-    
+
     return results
 
 
@@ -127,13 +135,13 @@ def create_category(category: CategoryCreate) -> CategoryResponse:
     """Yangi kategoriya yaratish"""
     global categories_counter
     categories_counter += 1
-    
+
     category_data = {
         "id": categories_counter,
         "name": category.name,
         "slug": category.slug or category.name.lower().replace(" ", "-")
     }
-    
+
     categories_db[categories_counter] = category_data
     return CategoryResponse(**category_data)
 
@@ -155,25 +163,21 @@ def get_all_categories() -> List[CategoryResponse]:
 def add_to_cart(cart_item: CartItemCreate) -> CartItemResponse:
     """Savatchaga mahsulot qo'shish"""
     global cart_counter
-    
-    # Mahsulot ma'lumotlarini olish
+
     product = get_product(cart_item.product_id)
     if not product:
         raise ValueError(f"Mahsulot topilmadi: {cart_item.product_id}")
-    
-    # Agar bu mahsulot allaqachon savatchada bo'lsa, miqdorini oshirish
+
     existing_item = None
     for item_id, item_data in cart_db.items():
         if item_data["product_id"] == cart_item.product_id:
             existing_item = item_id
             break
-    
+
     if existing_item:
-        # Miqdorni yangilash
         cart_db[existing_item]["quantity"] += cart_item.quantity
         item_data = cart_db[existing_item]
     else:
-        # Yangi item qo'shish
         cart_counter += 1
         item_data = {
             "id": cart_counter,
@@ -185,7 +189,7 @@ def add_to_cart(cart_item: CartItemCreate) -> CartItemResponse:
             "total_price": product.price * cart_item.quantity
         }
         cart_db[cart_counter] = item_data
-    
+
     return CartItemResponse(**item_data)
 
 
@@ -198,11 +202,11 @@ def update_cart_item(item_id: int, quantity: int) -> Optional[CartItemResponse]:
     """Savatchadagi mahsulot miqdorini yangilash"""
     if item_id not in cart_db:
         return None
-    
+
     item_data = cart_db[item_id]
     item_data["quantity"] = quantity
     item_data["total_price"] = item_data["product_price"] * quantity
-    
+
     return CartItemResponse(**item_data)
 
 
@@ -225,17 +229,15 @@ def create_order(order: OrderCreate, cart_items: List[CartItemResponse], user: U
     """Yangi buyurtma yaratish"""
     global orders_counter
     orders_counter += 1
-    
-    # Jami narxni hisoblash
+
     total_price = sum(item.total_price for item in cart_items)
-    
-    # Yetkazib berish manzilini olish
+
     delivery_address_text = order.delivery_address
     if order.delivery_address_id:
         address = get_default_delivery_address(user.id)
         if address:
             delivery_address_text = f"{address.address}, {address.city}"
-    
+
     order_data = {
         "id": orders_counter,
         "user_id": user.id,
@@ -250,12 +252,10 @@ def create_order(order: OrderCreate, cart_items: List[CartItemResponse], user: U
         "notes": order.notes,
         "created_at": datetime.now()
     }
-    
+
     orders_db[orders_counter] = order_data
-    
-    # Buyurtma yaratilgandan keyin savatni tozalash
     clear_cart()
-    
+
     return OrderResponse(**order_data)
 
 
@@ -263,19 +263,16 @@ def create_one_click_order(request: OneClickBuyRequest) -> OrderResponse:
     """1-click buy - bir bosishda sotib olish (savatga qo'shmasdan)"""
     global orders_counter
     orders_counter += 1
-    
-    # Mahsulotni tekshirish
+
     product = get_product(request.product_id)
     if not product:
         raise ValueError(f"Mahsulot topilmadi: {request.product_id}")
-    
+
     if not product.in_stock:
         raise ValueError(f"Mahsulot omborda yo'q: {product.name}")
-    
-    # Jami narxni Hisoblash
+
     total_price = product.price * request.quantity
-    
-    # Cart item yaratish (buyurtma uchun)
+
     cart_item = CartItemResponse(
         id=1,
         product_id=product.id,
@@ -285,10 +282,10 @@ def create_one_click_order(request: OneClickBuyRequest) -> OrderResponse:
         quantity=request.quantity,
         total_price=total_price
     )
-    
+
     order_data = {
         "id": orders_counter,
-        "user_id": None,  # 1-click buy da foydalanuvchi ro'yxatdan o'tmagan bo'lishi mumkin
+        "user_id": None,
         "customer_name": request.name,
         "customer_phone": request.phone,
         "customer_email": None,
@@ -300,9 +297,9 @@ def create_one_click_order(request: OneClickBuyRequest) -> OrderResponse:
         "notes": request.notes,
         "created_at": datetime.now()
     }
-    
+
     orders_db[orders_counter] = order_data
-    
+
     return OrderResponse(**order_data)
 
 
@@ -310,9 +307,7 @@ def get_order(order_id: int) -> Optional[OrderResponse]:
     """Buyurtmani ID bo'yicha olish"""
     order = orders_db.get(order_id)
     if order:
-        # items ni CartItemResponse ga konvertatsiya qilish
         order["items"] = [CartItemResponse(**item) for item in order["items"]]
-        # user_id va delivery_address ni qo'shish (agar yo'q bo'lsa)
         if "user_id" not in order:
             order["user_id"] = None
         if "delivery_address" not in order:
@@ -328,7 +323,6 @@ def get_all_orders() -> List[OrderResponse]:
     orders = []
     for order_data in orders_db.values():
         order_data["items"] = [CartItemResponse(**item) for item in order_data["items"]]
-        # user_id va delivery_address ni qo'shish (agar yo'q bo'lsa)
         if "user_id" not in order_data:
             order_data["user_id"] = None
         if "delivery_address" not in order_data:
@@ -342,7 +336,6 @@ def get_all_orders() -> List[OrderResponse]:
 # ============ INITIAL DATA (Dummy data for testing) ============
 def initialize_sample_data():
     """Namuna ma'lumotlar bilan to'ldirish (test uchun)"""
-    # Admin foydalanuvchi yaratish
     try:
         admin_user = create_user(
             UserCreate(
@@ -354,17 +347,14 @@ def initialize_sample_data():
             ),
             role=UserRole.ADMIN
         )
-        # Admin ni tasdiqlash
         users_db[admin_user.id]["is_verified"] = True
         print(f"✅ Admin foydalanuvchi yaratildi: {admin_user.username} (ID: {admin_user.id})")
     except ValueError:
         print("ℹ️  Admin foydalanuvchi allaqachon mavjud")
-    
-    # Kategoriyalar yaratish
+
     category1 = create_category(CategoryCreate(name="iPhone", slug="iphone"))
     category2 = create_category(CategoryCreate(name="Samsung", slug="samsung"))
-    
-    # Mahsulotlar yaratish
+
     create_product(ProductCreate(
         name="iPhone 14",
         description="Eng yangi iPhone modeli",
@@ -374,7 +364,7 @@ def initialize_sample_data():
         image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
-    
+
     create_product(ProductCreate(
         name="iPhone 14 Pro Max",
         description="Pro Max versiyasi, kuchli protsessor va katta ekran",
@@ -384,7 +374,7 @@ def initialize_sample_data():
         image_url="https://asset.openshop.uz/storage/uploads/products/photos/202210/xx15zjHFUby9NXWJGquU61lyjFgc2MWc7s8Z55ck.jpg",
         in_stock=True
     ))
-    
+
     create_product(ProductCreate(
         name="Samsung Galaxy S23",
         description="Eng yangi Samsung flagship",
@@ -394,7 +384,7 @@ def initialize_sample_data():
         image_url="https://images.samsung.com/is/image/samsung/p6pim/levant/2302/gallery/levant-sm-s911b-sm-s911bzdxme-535923677?$720_576_PNG$",
         in_stock=True
     ))
-    
+
     create_product(ProductCreate(
         name="Samsung Galaxy S23 Ultra",
         description="Ultra versiyasi, S Pen bilan",
@@ -404,8 +394,7 @@ def initialize_sample_data():
         image_url="https://images.samsung.com/is/image/samsung/p6pim/levant/2302/gallery/levant-sm-s918b-sm-s918bzdxme-535923674?$720_576_PNG$",
         in_stock=True
     ))
-    
-    # Yangi mahsulotlar qo'shish
+
     create_product(ProductCreate(
         name="iPhone 14",
         description="iPhone 14 - A15 Bionic chip, 5G support",
@@ -415,7 +404,7 @@ def initialize_sample_data():
         image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
-    
+
     create_product(ProductCreate(
         name="iPhone 14 Pro",
         description="iPhone 14 Pro - Titanium design, A16 Bionic chip",
@@ -425,7 +414,7 @@ def initialize_sample_data():
         image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
-    
+
     create_product(ProductCreate(
         name="iPhone 14",
         description="iPhone 14 - A15 Bionic chip, 5G support",
@@ -435,7 +424,7 @@ def initialize_sample_data():
         image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
-    
+
     create_product(ProductCreate(
         name="iPhone 14 Pro Max",
         description="iPhone 14 Pro Max - Titanium design, A16 Bionic chip",
@@ -445,7 +434,7 @@ def initialize_sample_data():
         image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
-    
+
     create_product(ProductCreate(
         name="iphone 14 pro max",
         description="iphone 14 pro max - Dynamic Island, USB-C, A16 Bionic chip",
@@ -455,7 +444,7 @@ def initialize_sample_data():
         image_url="https://main.mobilezone.uz/product-attachment/1/-uWM1Egz32BI0yl7dVnSZ91UT5BrU6Db_2_2_2_2_2.jpg",
         in_stock=True
     ))
-    
+
     create_product(ProductCreate(
         name="iPhone 14 Pro Max",
         description="iPhone 14 Pro Max - Titanium design, A16 Bionic chip",
@@ -465,10 +454,8 @@ def initialize_sample_data():
         image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
         in_stock=True
     ))
-    
+
     print("✅ Namuna ma'lumotlar bilan to'ldirildi")
-    
-    # return None
 
 
 # ============ REVIEW FUNCTIONS ============
@@ -476,12 +463,11 @@ def create_review(review: ReviewCreate) -> ReviewResponse:
     """Yangi sharh yaratish"""
     global reviews_counter
     reviews_counter += 1
-    
-    # Mahsulot mavjudligini tekshirish
+
     product = get_product(review.product_id)
     if not product:
         raise ValueError(f"Mahsulot topilmadi: {review.product_id}")
-    
+
     review_data = {
         "id": reviews_counter,
         "product_id": review.product_id,
@@ -490,7 +476,7 @@ def create_review(review: ReviewCreate) -> ReviewResponse:
         "comment": review.comment,
         "created_at": datetime.now()
     }
-    
+
     reviews_db[reviews_counter] = review_data
     return ReviewResponse(**review_data)
 
@@ -510,16 +496,13 @@ def get_all_reviews() -> List[ReviewResponse]:
 def add_to_wishlist(product_id: int) -> WishlistItemResponse:
     """Wishlist ga mahsulot qo'shish"""
     global wishlist_counter
-    
-    # Mahsulot mavjudligini tekshirish
+
     product = get_product(product_id)
     if not product:
         raise ValueError(f"Mahsulot topilmadi: {product_id}")
-    
-    # Agar allaqachon wishlist da bo'lsa
+
     for item_id, item_data in wishlist_db.items():
         if item_data["product_id"] == product_id:
-            # ProductResponse ga konvertatsiya
             stored_product = ProductResponse(**item_data["product"])
             return WishlistItemResponse(
                 id=item_data["id"],
@@ -527,8 +510,7 @@ def add_to_wishlist(product_id: int) -> WishlistItemResponse:
                 product=stored_product,
                 added_at=item_data["added_at"]
             )
-    
-    # Yangi item qo'shish
+
     wishlist_counter += 1
     item_data = {
         "id": wishlist_counter,
@@ -537,7 +519,7 @@ def add_to_wishlist(product_id: int) -> WishlistItemResponse:
         "added_at": datetime.now()
     }
     wishlist_db[wishlist_counter] = item_data
-    
+
     return WishlistItemResponse(
         id=wishlist_counter,
         product_id=product_id,
@@ -581,14 +563,12 @@ def get_products_paginated(
 ) -> tuple[List[ProductResponse], int]:
     """Sahifalangan mahsulotlar ro'yxati"""
     products = get_all_products(category_id=category_id)
-    
-    # Narx bo'yicha filtrlash
+
     if min_price:
         products = [p for p in products if p.price >= min_price]
     if max_price:
         products = [p for p in products if p.price <= max_price]
-    
-    # Sortlash
+
     if sort_by == "price_asc":
         products = sorted(products, key=lambda x: x.price)
     elif sort_by == "price_desc":
@@ -597,13 +577,12 @@ def get_products_paginated(
         products = sorted(products, key=lambda x: x.name)
     elif sort_by == "name_desc":
         products = sorted(products, key=lambda x: x.name, reverse=True)
-    
-    # Pagination
+
     total = len(products)
     start = (page - 1) * page_size
     end = start + page_size
     paginated_products = products[start:end]
-    
+
     return paginated_products, total
 
 
@@ -612,7 +591,7 @@ def update_order_status(order_id: int, new_status: OrderStatus) -> Optional[Orde
     """Buyurtma holatini yangilash"""
     if order_id not in orders_db:
         return None
-    
+
     orders_db[order_id]["status"] = new_status
     order = orders_db[order_id]
     order["items"] = [CartItemResponse(**item) for item in order["items"]]
@@ -625,24 +604,21 @@ def get_statistics() -> StatisticsResponse:
     total_products = len(products_db)
     total_categories = len(categories_db)
     total_orders = len(orders_db)
-    
-    # Jami daromad
-    total_revenue = sum(order["total_price"] for order in orders_db.values() 
-                       if order["status"] == OrderStatus.DELIVERED)
-    
-    # Holat bo'yicha buyurtmalar
-    pending_orders = sum(1 for order in orders_db.values() 
+
+    total_revenue = sum(order["total_price"] for order in orders_db.values()
+                        if order["status"] == OrderStatus.DELIVERED)
+
+    pending_orders = sum(1 for order in orders_db.values()
                          if order["status"] == OrderStatus.PENDING)
-    completed_orders = sum(1 for order in orders_db.values() 
+    completed_orders = sum(1 for order in orders_db.values()
                            if order["status"] == OrderStatus.DELIVERED)
-    
-    # O'rtacha buyurtma summasi
+
     if total_orders > 0:
         all_order_prices = [order["total_price"] for order in orders_db.values()]
         average_order_value = sum(all_order_prices) / total_orders
     else:
         average_order_value = None
-    
+
     return StatisticsResponse(
         total_products=total_products,
         total_categories=total_categories,
@@ -660,14 +636,12 @@ def get_related_products(product_id: int, limit: int = 4) -> List[ProductRespons
     product = get_product(product_id)
     if not product:
         return []
-    
-    # Bir xil kategoriyadagi boshqa mahsulotlar
+
     related = [
         p for p in products_db.values()
         if p.get("category_id") == product.category_id and p["id"] != product_id
     ]
-    
-    # Limit qo'yish
+
     related = related[:limit]
     return [ProductResponse(**p) for p in related]
 
@@ -733,19 +707,18 @@ def delete_video(video_id: int) -> bool:
 def get_product_with_reviews(product_id: int):
     """Mahsulot + sharhlar + o'rtacha baholash"""
     from models import ProductWithReviews
-    
+
     product = get_product(product_id)
     if not product:
         return None
-    
+
     reviews = get_product_reviews(product_id)
-    
-    # O'rtacha baholashni hisoblash
+
     if reviews:
         average_rating = sum(r.rating for r in reviews) / len(reviews)
     else:
         average_rating = None
-    
+
     return ProductWithReviews(
         **product.dict(),
         reviews=reviews,
@@ -758,12 +731,11 @@ def update_product(product_id: int, product_update: dict) -> Optional[ProductRes
     """Mahsulotni yangilash"""
     if product_id not in products_db:
         return None
-    
-    # Yangilash
+
     for key, value in product_update.items():
         if value is not None:
             products_db[product_id][key] = value
-    
+
     return ProductResponse(**products_db[product_id])
 
 
@@ -779,11 +751,11 @@ def update_category(category_id: int, category_update: dict) -> Optional[Categor
     """Kategoriyani yangilash"""
     if category_id not in categories_db:
         return None
-    
+
     for key, value in category_update.items():
         if value is not None:
             categories_db[category_id][key] = value
-    
+
     return CategoryResponse(**categories_db[category_id])
 
 
@@ -842,26 +814,25 @@ def create_user(user: UserCreate, role: UserRole = UserRole.USER) -> UserRespons
     """Yangi foydalanuvchi yaratish"""
     global users_counter
     users_counter += 1
-    
-    # Email yoki username takrorlanmasligini tekshirish
+
     for existing_user in users_db.values():
         if existing_user["email"] == user.email:
             raise ValueError("Bu email allaqachon ro'yxatdan o'tgan")
         if existing_user["username"] == user.username:
             raise ValueError("Bu username allaqachon band")
-    
+
     user_data = {
         "id": users_counter,
         "username": user.username,
         "email": user.email,
-        "phone": user.phone,  # Telefon raqami majburiy
+        "phone": user.phone,
         "full_name": user.full_name,
         "password_hash": hash_password(user.password),
         "role": role,
-        "is_verified": True,  # SMS tasdiqlash kerak
+        "is_verified": True,
         "created_at": datetime.now()
     }
-    
+
     users_db[users_counter] = user_data
     return UserResponse(**user_data)
 
@@ -900,17 +871,15 @@ def get_user_by_phone(phone: str) -> Optional[UserResponse]:
 
 def authenticate_user(username_or_email: str, password: str) -> Optional[UserResponse]:
     """Foydalanuvchini autentifikatsiya qilish"""
-    # Email yoki username bo'yicha qidirish
     user_data = None
     for u in users_db.values():
         if u["email"] == username_or_email or u["username"] == username_or_email:
             user_data = u
             break
-    
+
     if not user_data:
         return None
-    
-    # Parolni tekshirish
+
     if verify_password(password, user_data["password_hash"]):
         return UserResponse(**user_data)
     return None
@@ -920,27 +889,23 @@ def verify_user_phone(phone: str, code: str) -> Optional[UserResponse]:
     """Telefon raqamini tasdiqlash"""
     if phone not in verification_codes_db:
         return None
-    
+
     verification_data = verification_codes_db[phone]
-    
-    # Kodni tekshirish
+
     if verification_data["code"] != code:
         return None
-    
-    # Kod muddati o'tganmi tekshirish (10 daqiqa)
+
     expires_at = verification_data["expires_at"]
     if datetime.now() > expires_at:
         del verification_codes_db[phone]
         return None
-    
-    # Foydalanuvchini tasdiqlash
+
     user_id = verification_data["user_id"]
     if user_id in users_db:
         users_db[user_id]["is_verified"] = True
-        # Kodni o'chirish
         del verification_codes_db[phone]
         return UserResponse(**users_db[user_id])
-    
+
     return None
 
 
@@ -953,40 +918,35 @@ def send_verification_code(phone: str, user_id: int) -> str:
     """Tasdiqlovchi kod yuborish (simulyatsiya)"""
     code = generate_verification_code()
     expires_at = datetime.now().replace(second=0, microsecond=0)
-    expires_at = expires_at.replace(minute=expires_at.minute + 10)  # 10 daqiqa
-    
+    expires_at = expires_at.replace(minute=expires_at.minute + 10)
+
     verification_codes_db[phone] = {
         "code": code,
         "expires_at": expires_at,
         "user_id": user_id,
         "created_at": datetime.now()
     }
-    
-    # Simulyatsiya - haqiqiy loyihada SMS yuboriladi
+
     print(f"📱 SMS yuborildi {phone} ga: Tasdiqlovchi kod: {code}")
-    
+
     return code
 
 
 def resend_verification_code(phone: str) -> Optional[str]:
     """Kodni qayta yuborish"""
-    # Foydalanuvchini topish
     user = None
     for user_data in users_db.values():
         if user_data["phone"] == phone:
             user = user_data
             break
-    
+
     if not user:
         return None
-    
+
     return send_verification_code(phone, user["id"])
 
 
 # ============ PASSWORD RESET FUNCTIONS ============
-# Password reset tokens database (email -> token_data)
-password_reset_tokens_db: Dict[str, dict] = {}  # email -> {token, expires_at, user_id}
-
 def generate_password_reset_token() -> str:
     """Parolni tiklash uchun token yaratish"""
     import secrets
@@ -995,38 +955,24 @@ def generate_password_reset_token() -> str:
 
 def send_password_reset_email(email: str, user_id: int) -> str:
     """Parolni tiklash email yuborish"""
-    token = generate_password_reset_token()
-    expires_at = datetime.now() + timedelta(hours=1)  # 1 soat amal qiladi
-    
+    reset_token = generate_password_reset_token()
+    expires_at = datetime.now() + timedelta(hours=1)
+
     password_reset_tokens_db[email] = {
-        "token": token,
+        "token": reset_token,
         "expires_at": expires_at,
         "user_id": user_id,
         "created_at": datetime.now()
     }
-    
-    # Email yuborish
-    try:
-        reset_link = f"https://phone-shop-frontend.vercel.app/reset-password?token={token}"
-        
-        # Environment variables dan olish
-        import os
-        smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-        smtp_port = int(os.getenv("SMTP_PORT", "587"))
-        smtp_username = os.getenv("SMTP_USERNAME", "")
-        smtp_password = os.getenv("SMTP_PASSWORD", "")
-        
-        # Agar SMTP konfiguratsiyasi bo'lsa, email yuborish
-        if smtp_username and smtp_password:
-            # Email yaratish
-            msg = MIMEMultipart()
-            msg['From'] = smtp_username
-            msg['To'] = email
-            msg['Subject'] = "Parolni tiklash - Phone Shop"
-            
-            # Email body
-            body = f"""
-Assalomu alaykum!
+
+    reset_link = f"https://phone-shop-frontend.vercel.app/reset-password?token={reset_token}"
+
+    msg = MIMEMultipart()
+    msg['From'] = SMTP_USER
+    msg['To'] = email
+    msg['Subject'] = "Parolni tiklash - Phone Shop"
+
+    body = f"""Assalomu alaykum!
 
 Parolni tiklash so'rovi qabul qilindi.
 
@@ -1038,42 +984,33 @@ Link 1 soat davomida amal qiladi.
 Agar siz parolni tiklashni so'ramagan bo'lsangiz, ushbu xabarni e'tiborsiz qoldiring.
 
 Hurmat bilan,
-Phone Shop jamoasi
-"""
-            
-            msg.attach(MIMEText(body, 'plain', 'utf-8'))
-            
-            # Email yuborish
-            import smtplib
-            server = smtplib.SMTP(smtp_server, smtp_port)
+Phone Shop jamoasi"""
+
+    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.ehlo()
             server.starttls()
-            server.login(smtp_username, smtp_password)
-            server.sendmail(smtp_username, email, msg.as_string())
-            server.quit()
-            
-            print(f"📧 EMAIL YUBORILDI: {email}")
-        else:
-            # SMTP konfiguratsiyasi bo'lmasa, console ga chiqaramiz
-            print(f"📧 EMAIL CONFIG YO'Q - Console ga chiqariladi: {email}")
-        
-        # Har holda ham console ga chiqaramiz (test uchun)
-        print(f"🔑 TOKEN: {token}")
+            server.ehlo()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(SMTP_USER, email, msg.as_string())
+
+        print(f"📧 EMAIL YUBORILDI: {email}")
+        print(f"🔑 TOKEN: {reset_token}")
         print(f"🔗 RESET LINK: {reset_link}")
         print(f"⏰ EXPIRES: {expires_at}")
-        
-        return token
-        
+
     except Exception as e:
-        print(f"Email yuborishda xatolik: {e}")
-        # Xatolik bo'lsa ham token qaytaramiz
-        return token
+        print(f"❌ Email yuborishda xatolik: {e}")
+
+    return reset_token
 
 
 def verify_password_reset_token(token: str) -> Optional[dict]:
     """Parolni tiklash tokenini tekshirish"""
     for email, token_data in password_reset_tokens_db.items():
         if token_data["token"] == token:
-            # Token muddati o'tganmi tekshirish
             if datetime.now() > token_data["expires_at"]:
                 del password_reset_tokens_db[email]
                 return None
@@ -1085,18 +1022,17 @@ def reset_user_password(user_id: int, new_password: str) -> bool:
     """Foydalanuvchi parolini yangilash"""
     if user_id not in users_db:
         return False
-    
+
     users_db[user_id]["password_hash"] = hash_password(new_password)
-    
-    # Tokenlarni tozalash
+
     tokens_to_remove = []
     for email, token_data in password_reset_tokens_db.items():
         if token_data["user_id"] == user_id:
             tokens_to_remove.append(email)
-    
+
     for email in tokens_to_remove:
         del password_reset_tokens_db[email]
-    
+
     return True
 
 
@@ -1105,7 +1041,7 @@ def forgot_password(email: str) -> Optional[str]:
     user = get_user_by_email(email)
     if not user:
         return None
-    
+
     return send_password_reset_email(email, user.id)
 
 
@@ -1114,13 +1050,12 @@ def create_delivery_address(user_id: int, address: DeliveryAddressCreate) -> Del
     """Yetkazib berish manzili yaratish"""
     global delivery_addresses_counter
     delivery_addresses_counter += 1
-    
-    # Agar asosiy manzil bo'lsa, boshqa asosiy manzillarni o'chirish
+
     if address.is_default:
         for addr_id, addr_data in delivery_addresses_db.items():
             if addr_data["user_id"] == user_id:
                 addr_data["is_default"] = False
-    
+
     address_data = {
         "id": delivery_addresses_counter,
         "user_id": user_id,
@@ -1130,7 +1065,7 @@ def create_delivery_address(user_id: int, address: DeliveryAddressCreate) -> Del
         "is_default": address.is_default,
         "created_at": datetime.now()
     }
-    
+
     delivery_addresses_db[delivery_addresses_counter] = address_data
     return DeliveryAddressResponse(**address_data)
 
