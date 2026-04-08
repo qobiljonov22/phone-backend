@@ -15,7 +15,8 @@ from database import (
     create_user, authenticate_user, verify_user_phone, send_verification_code,
     resend_verification_code, get_user_delivery_addresses,
     create_delivery_address, get_default_delivery_address,
-    forgot_password, verify_password_reset_token, reset_user_password
+    forgot_password, verify_password_reset_token, reset_user_password,
+    get_user_by_id
 )
 from auth import create_access_token, get_current_active_user
 
@@ -279,7 +280,14 @@ def forgot_password_endpoint(request: ForgotPasswordRequest):
     Email ga parolni tiklash linki yuboriladi
     """
     try:
-        forgot_password(request.email)
+        token = forgot_password(request.email)
+        
+        if not token:
+            # Agar email topilmasa, xavfsizlik uchun bir xil xabar
+            return MessageResponse(
+                message="Agar bu email ro'yxatdan o'tgan bo'lsa, parolni tiklash linki yuborildi",
+                success=True
+            )
         
         return MessageResponse(
             message=f"Parolni tiklash linki {request.email} manziliga yuborildi",
@@ -303,7 +311,24 @@ def reset_password_endpoint(request: ResetPasswordRequest):
     Token orqali parolni yangilash
     """
     try:
-        user = reset_user_password(request.token, request.new_password)
+        # Tokenni tekshirish
+        token_data = verify_password_reset_token(request.token)
+        if not token_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Token noto'g'ri yoki muddati o'tgan"
+            )
+        
+        # Parolni yangilash
+        success = reset_user_password(token_data["user_id"], request.new_password)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Parolni yangilab bo'lmadi"
+            )
+        
+        # Yangilangan userni olish
+        user = get_user_by_id(token_data["user_id"])
         
         return ResetPasswordResponse(
             message="Parol muvaffaqiyatli yangilandi!",
