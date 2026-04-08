@@ -4,6 +4,7 @@ Hozircha in-memory (xotirada) saqlanadi, keyinroq haqiqiy database ga o'zgartiri
 """
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
+import os
 from models import (
     ProductCreate, ProductResponse, CategoryCreate, CategoryResponse,
     CartItemCreate, CartItemResponse, OrderCreate, OrderResponse, OrderStatus,
@@ -22,6 +23,13 @@ SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
 SMTP_USER = "sizning_emailingiz@gmail.com"       # ← haqiqiy email
 SMTP_PASSWORD = "xxxx xxxx xxxx xxxx"            # ← Gmail App Password (16 belgi)
+
+# Environment orqali override (production uchun tavsiya)
+SMTP_HOST = os.getenv("SMTP_HOST", SMTP_HOST)
+SMTP_PORT = int(os.getenv("SMTP_PORT", str(SMTP_PORT)))
+SMTP_USER = os.getenv("SMTP_USER", SMTP_USER)
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", SMTP_PASSWORD)
+SMTP_TO_EMAIL = os.getenv("SMTP_TO_EMAIL", SMTP_USER)
 
 
 # ============ IN-MEMORY DATABASES ============
@@ -49,6 +57,7 @@ credit_applications_db: List[dict] = []
 trade_in_requests_db: List[dict] = []
 price_match_requests_db: List[dict] = []
 newsletter_subscribers_db: List[dict] = []
+submit_forms_db: List[dict] = []
 
 # Reviews database
 reviews_db: Dict[int, dict] = {}  # review_id -> review_data
@@ -84,15 +93,15 @@ def create_product(product: ProductCreate) -> ProductResponse:
     products_counter += 1
 
     product_data = {
-        "id": products_counter,
-        "name": product.name,
-        "description": product.description,
-        "price": product.price,
-        "storage": product.storage,
-        "category_id": product.category_id,
-        "image_url": product.image_url,
-        "in_stock": product.in_stock,
-        "created_at": datetime.now()
+    "id": products_counter,
+    "name": product.name or "",
+    "description": product.description or "",
+    "price": product.price,
+    "storage": product.storage,
+    "category_id": product.category_id,
+    "image_url": product.image_url,
+    "in_stock": product.in_stock,
+    "created_at": datetime.now()
     }
 
     products_db[products_counter] = product_data
@@ -361,7 +370,7 @@ def initialize_sample_data():
         price=719900.0,
         storage="128 GB",
         category_id=category1.id,
-        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
+        image_url="https://castore.uz/upload/iblock/180/45c3p3z221jx63kvu9d0391inf7fbzxj/smartfon-iphone-14-128gb-midnight.webp",
         in_stock=True
     ))
 
@@ -401,7 +410,7 @@ def initialize_sample_data():
         price=629900.0,
         storage="128 GB",
         category_id=category1.id,
-        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
+        image_url="https://castore.uz/upload/iblock/180/45c3p3z221jx63kvu9d0391inf7fbzxj/smartfon-iphone-14-128gb-midnight.webp",
         in_stock=True
     ))
 
@@ -411,7 +420,7 @@ def initialize_sample_data():
         price=1399000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
+        image_url="https://castore.uz/upload/iblock/180/45c3p3z221jx63kvu9d0391inf7fbzxj/smartfon-iphone-14-128gb-midnight.webp",
         in_stock=True
     ))
 
@@ -421,7 +430,7 @@ def initialize_sample_data():
         price=979900.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
+        image_url="https://castore.uz/upload/iblock/180/45c3p3z221jx63kvu9d0391inf7fbzxj/smartfon-iphone-14-128gb-midnight.webp",
         in_stock=True
     ))
 
@@ -431,7 +440,7 @@ def initialize_sample_data():
         price=1699000.0,
         storage="512 GB",
         category_id=category1.id,
-        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
+        image_url="https://castore.uz/upload/iblock/180/45c3p3z221jx63kvu9d0391inf7fbzxj/smartfon-iphone-14-128gb-midnight.webp",
         in_stock=True
     ))
 
@@ -451,7 +460,7 @@ def initialize_sample_data():
         price=1599000.0,
         storage="256 GB",
         category_id=category1.id,
-        image_url="https://appsource.ru/upload/iblock/192/2ko4otz5ktybh07uo71t27tsf8e079n0.jpg",
+        image_url="https://castore.uz/upload/iblock/180/45c3p3z221jx63kvu9d0391inf7fbzxj/smartfon-iphone-14-128gb-midnight.webp",
         in_stock=True
     ))
 
@@ -944,6 +953,35 @@ def resend_verification_code(phone: str) -> Optional[str]:
         return None
 
     return send_verification_code(phone, user["id"])
+
+
+# ============ CONTACT FORM EMAIL ============
+def send_contact_form_email(name: str, email_address: str, message: str) -> bool:
+    """Submit form xabarini email orqali yuborish"""
+    msg = MIMEMultipart()
+    msg["From"] = SMTP_USER
+    msg["To"] = SMTP_TO_EMAIL
+    msg["Subject"] = "Yangi submit form xabari"
+
+    body = f"""Yangi forma xabari:
+
+Name: {name}
+Email: {email_address}
+Message: {message}
+"""
+    msg.attach(MIMEText(body, "plain", "utf-8"))
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(SMTP_USER, SMTP_TO_EMAIL, msg.as_string())
+        return True
+    except Exception as e:
+        print(f"❌ Submit email yuborishda xatolik: {e}")
+        return False
 
 
 # ============ PASSWORD RESET FUNCTIONS ============

@@ -138,6 +138,7 @@ ip addr show
 ### Forms (Formalar)
 
 - `POST /callbacks` - Qayta qo'ng'iroq so'rovi
+- `POST /submit` - Form submit (name, emailAddress, message) va email yuborish
 - `POST /credit-applications` - Kredit arizasi
 - `POST /trade-in-requests` - Trade-in so'rovi
 - `POST /price-match-requests` - Narx solishtirish so'rovi
@@ -271,6 +272,14 @@ curl -X POST http://127.0.0.1:8000/reviews \
 
 ```bash
 curl -X POST http://127.0.0.1:8000/wishlist/add/1
+```
+
+### Submit forma (email yuborish)
+
+```bash
+curl -X POST http://127.0.0.1:8000/submit \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "name=Ali&emailAddress=ali@example.com&message=Salom, men bilan bog'laning"
 ```
 
 ### Mahsulotlarni solishtirish

@@ -1,11 +1,11 @@
 
 
 # ============ IMPORTS ============
-from fastapi import APIRouter, Query, HTTPException, status, Depends
+from fastapi import APIRouter, Query, HTTPException, status, Depends, Form
 from fastapi.responses import JSONResponse
 from typing import Optional, List
 from models import ProductResponse, PaginatedResponse, UserResponse, ProductCreate, ProductWithReviews, MessageResponse, CategoryResponse, CategoryCreate, SearchResponse, CartResponse, CartItemResponse, CartItemCreate, OrderResponse, OrderCreate, OneClickBuyRequest, CallbackRequest, CreditApplication, TradeInRequest, PriceMatchRequest, NewsletterSubscribe, ReviewResponse, ReviewCreate, WishlistResponse, WishlistItemResponse, OrderStatusUpdate, StatisticsResponse, RelatedProductsResponse, CompareProductsResponse, CompareProductsRequest, VideoResponse, VideoCreate
-from database import get_all_products, get_products_paginated, get_product, get_product_with_reviews, create_product, update_product, delete_product, get_all_categories, get_category, create_category, update_category, delete_category, search_products, add_to_cart, get_cart, update_cart_item, remove_from_cart, clear_cart, create_order, create_one_click_order, get_order, get_all_orders, get_orders_by_phone, get_orders_by_email, create_review, get_product_reviews, get_all_reviews, add_to_wishlist, get_wishlist, remove_from_wishlist, update_order_status, get_statistics, get_related_products, compare_products, create_video, get_video, get_videos_by_product, get_all_videos, delete_video
+from database import get_all_products, get_products_paginated, get_product, get_product_with_reviews, create_product, update_product, delete_product, get_all_categories, get_category, create_category, update_category, delete_category, search_products, add_to_cart, get_cart, update_cart_item, remove_from_cart, clear_cart, create_order, create_one_click_order, get_order, get_all_orders, get_orders_by_phone, get_orders_by_email, create_review, get_product_reviews, get_all_reviews, add_to_wishlist, get_wishlist, remove_from_wishlist, update_order_status, get_statistics, get_related_products, compare_products, create_video, get_video, get_videos_by_product, get_all_videos, delete_video, callbacks_db, credit_applications_db, trade_in_requests_db, price_match_requests_db, newsletter_subscribers_db, submit_forms_db, send_contact_form_email
 
 # Minimal admin dependency for endpoints that require admin
 def get_current_admin():
@@ -519,6 +519,41 @@ def submit_callback(callback: CallbackRequest):
     
     return MessageResponse(
         message="So'rovingiz qabul qilindi. Tez orada sizga qo'ng'iroq qilamiz!",
+        success=True
+    )
+
+
+@router.post("/submit", response_model=MessageResponse, status_code=status.HTTP_201_CREATED, tags=["Forms"])
+def submit_contact_form(
+    name: str = Form(...),
+    emailAddress: str = Form(...),
+    message: str = Form(...)
+):
+    """
+    Form orqali xabar yuborish (rasmdagi submit form uchun)
+
+    - **name**: Foydalanuvchi ismi
+    - **emailAddress**: Foydalanuvchi email manzili
+    - **message**: Xabar matni
+    """
+    submit_data = {
+        "name": name,
+        "emailAddress": emailAddress,
+        "message": message,
+        "submitted_at": datetime.now().isoformat()
+    }
+    submit_forms_db.append(submit_data)
+
+    email_sent = send_contact_form_email(name=name, email_address=emailAddress, message=message)
+
+    if email_sent:
+        return MessageResponse(
+            message="Xabaringiz qabul qilindi va email yuborildi!",
+            success=True
+        )
+
+    return MessageResponse(
+        message="Xabaringiz qabul qilindi (email yuborishda xatolik bo'ldi).",
         success=True
     )
 
