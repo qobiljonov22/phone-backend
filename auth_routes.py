@@ -275,12 +275,19 @@ def forgot_password_endpoint(request: ForgotPasswordRequest):
     """
     Parolni unutish
     
-    - **email**: Email manzil (majburiy)
+    - **gmail**: Gmail manzil (majburiy)
     
     Email ga parolni tiklash linki yuboriladi
     """
     try:
-        token = forgot_password(request.email)
+        email_value = request.gmail or request.email
+        if not email_value:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="gmail maydoni majburiy"
+            )
+
+        token = forgot_password(email_value)
         
         if not token:
             # Agar email topilmasa, xavfsizlik uchun bir xil xabar
@@ -290,7 +297,7 @@ def forgot_password_endpoint(request: ForgotPasswordRequest):
             )
         
         return MessageResponse(
-            message=f"Parolni tiklash linki {request.email} manziliga yuborildi",
+            message=f"Parolni tiklash linki {email_value} manziliga yuborildi",
             success=True
         )
     except ValueError as e:

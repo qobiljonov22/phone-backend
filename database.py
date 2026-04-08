@@ -363,6 +363,11 @@ def initialize_sample_data():
 
     category1 = create_category(CategoryCreate(name="iPhone", slug="iphone"))
     category2 = create_category(CategoryCreate(name="Samsung", slug="samsung"))
+    create_category(CategoryCreate(name="iPad", slug="ipad"))
+    create_category(CategoryCreate(name="Macbook & iMac", slug="macbook-imac"))
+    create_category(CategoryCreate(name="Watch", slug="watch"))
+    create_category(CategoryCreate(name="Аксессуары", slug="aksessuary"))
+    create_category(CategoryCreate(name="Гаджеты", slug="gadgets"))
 
     create_product(ProductCreate(
         name="iPhone 14",

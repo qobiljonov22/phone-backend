@@ -354,7 +354,8 @@ class ResendCodeRequest(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     """Parolni unutish so'rovi"""
-    email: str = Field(..., description="Email manzil")
+    gmail: Optional[str] = Field(None, description="Gmail manzil")
+    email: Optional[str] = Field(None, description="Email manzil (eski format)")
 
 
 class ResetPasswordRequest(BaseModel):
