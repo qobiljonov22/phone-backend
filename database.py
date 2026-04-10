@@ -1174,13 +1174,19 @@ def reset_user_password(user_id: int, new_password: str) -> bool:
     return True
 
 
-def forgot_password(email: str) -> Optional[str]:
-    """Parolni unutish - email ga tiklash link yuborish"""
-    user = get_user_by_email(email)
-    if not user:
-        return None
-
-    return send_password_reset_email(email, user.id)
+def forgot_password(email: str = None, phone: str = None) -> Optional[str]:
+    """Parolni unutish - email yoki telefon raqamiga tiklash link yuborish"""
+    if email:
+        user = get_user_by_email(email)
+        if not user:
+            return None
+        return send_password_reset_email(email, user.id)
+    elif phone:
+        user = get_user_by_phone(phone)
+        if not user:
+            return None
+        return send_password_reset_email(user.email, user.id)
+    return None
 
 
 # ============ DELIVERY ADDRESS FUNCTIONS ============
