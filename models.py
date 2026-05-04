@@ -80,6 +80,12 @@ class CartResponse(BaseModel):
     items: List[CartItemResponse]
     total_items: int  # Jami mahsulotlar soni
     total_price: float  # Jami narx
+    subtotal: float  # Chegirmadan oldingi summa
+    total_discount: float  # Jami chegirma
+    delivery_fee: float  # Yetkazib berish narxi
+    final_total: float  # Yakuniy summa
+    currency: str = "UZS"  # Valyuta
+    estimated_delivery: Optional[str] = None  # Taxminiy yetkazish vaqti
 
 
 # ============ ORDER MODELS ============
@@ -410,3 +416,34 @@ class VideoResponse(VideoCreate):
 class ProductVideosResponse(BaseModel):
     product_id: int
     videos: List[VideoResponse]
+
+
+# ============ PROMOTIONS & FEATURES MODELS ============
+class PromotionResponse(BaseModel):
+    """Aktsiya ma'lumotlari"""
+    id: int
+    title: str
+    description: str
+    icon: str  # Icon URL or emoji
+    is_active: bool = True
+    
+    class Config:
+        from_attributes = True
+
+
+class FeatureResponse(BaseModel):
+    """Xususiyat ma'lumotlari"""
+    id: int
+    title: str
+    description: str
+    icon: str  # Icon URL or emoji
+    is_active: bool = True
+    
+    class Config:
+        from_attributes = True
+
+
+class PromotionsFeaturesResponse(BaseModel):
+    """Aktsiyalar va xususiyatlar ro'yxati"""
+    promotions: List[PromotionResponse]
+    features: List[FeatureResponse]

@@ -1,11 +1,24 @@
 
-
 # ============ IMPORTS ============
 from fastapi import APIRouter, Query, HTTPException, status, Depends, Form
 from fastapi.responses import JSONResponse
 from typing import Optional, List
-from models import ProductResponse, PaginatedResponse, UserResponse, ProductCreate, ProductWithReviews, MessageResponse, CategoryResponse, CategoryCreate, SearchResponse, CartResponse, CartItemResponse, CartItemCreate, OrderResponse, OrderCreate, OneClickBuyRequest, CallbackRequest, CreditApplication, TradeInRequest, PriceMatchRequest, NewsletterSubscribe, ReviewResponse, ReviewCreate, WishlistResponse, WishlistItemResponse, OrderStatusUpdate, StatisticsResponse, RelatedProductsResponse, CompareProductsResponse, CompareProductsRequest, VideoResponse, VideoCreate
-from database import get_all_products, get_products_paginated, get_product, get_product_with_reviews, create_product, update_product, delete_product, get_all_categories, get_category, create_category, update_category, delete_category, search_products, add_to_cart, get_cart, update_cart_item, remove_from_cart, clear_cart, create_order, create_one_click_order, get_order, get_all_orders, get_orders_by_phone, get_orders_by_email, create_review, get_product_reviews, get_all_reviews, add_to_wishlist, get_wishlist, remove_from_wishlist, update_order_status, get_statistics, get_related_products, compare_products, create_video, get_video, get_videos_by_product, get_all_videos, delete_video, callbacks_db, credit_applications_db, trade_in_requests_db, price_match_requests_db, newsletter_subscribers_db, submit_forms_db, send_contact_form_email
+from models import ProductResponse, PaginatedResponse, UserResponse, ProductCreate, ProductWithReviews, MessageResponse, CategoryResponse, CategoryCreate, SearchResponse, CartResponse, CartItemResponse, CartItemCreate, OrderResponse, OrderCreate, OneClickBuyRequest, CallbackRequest, CreditApplication, TradeInRequest, PriceMatchRequest, NewsletterSubscribe, ReviewResponse, ReviewCreate, WishlistResponse, WishlistItemResponse, OrderStatusUpdate, StatisticsResponse, RelatedProductsResponse, CompareProductsResponse, CompareProductsRequest, VideoResponse, VideoCreate, PromotionsFeaturesResponse
+from database import (
+    create_product, get_product, get_all_products, search_products,
+    create_category, get_category, get_all_categories,
+    add_to_cart, get_cart, update_cart_item, remove_from_cart, clear_cart,
+    create_order, get_order, get_all_orders, create_one_click_order,
+    get_product_reviews, create_review, get_all_reviews,
+    add_to_wishlist, get_wishlist, remove_from_wishlist,
+    get_products_paginated, update_order_status,
+    get_statistics, get_related_products, compare_products,
+    create_video, get_video, get_videos_by_product, get_all_videos, delete_video,
+    get_product_with_reviews, update_product, delete_product,
+    update_category, delete_category, get_orders_by_phone, get_orders_by_email,
+    get_promotions_and_features
+)
+from database import callbacks_db, submit_forms_db, send_contact_form_email
 
 # Minimal admin dependency for endpoints that require admin
 def get_current_admin():
@@ -300,16 +313,33 @@ def get_cart_items():
     """
     Savatchadagi barcha mahsulotlarni olish
     
-    Jami mahsulotlar soni va jami narxni ham qaytaradi
+    Jami mahsulotlar soni, narx, chegirma, yetkazib berish va yakuniy summani qaytaradi
     """
     items = get_cart()
     total_items = sum(item.quantity for item in items)
     total_price = sum(item.total_price for item in items)
     
+    # Chegirma hisoblash (masalan: 10% chegirma)
+    discount_rate = 0.1 if total_items > 1 else 0.0
+    total_discount = total_price * discount_rate
+    subtotal = total_price
+    delivery_fee = 0.0 if total_price >= 500000 else 30000  # 500k dan yuqori bo'lsa bepul yetkazish
+    final_total = subtotal - total_discount + delivery_fee
+    
+    # Taxminiy yetkazish vaqti
+    from datetime import datetime, timedelta
+    estimated_delivery = (datetime.now() + timedelta(hours=3)).strftime("%H:%M, %d-%m")
+    
     return CartResponse(
         items=items,
         total_items=total_items,
-        total_price=total_price
+        total_price=total_price,
+        subtotal=subtotal,
+        total_discount=total_discount,
+        delivery_fee=delivery_fee,
+        final_total=final_total,
+        currency="UZS",
+        estimated_delivery=estimated_delivery
     )
 
 

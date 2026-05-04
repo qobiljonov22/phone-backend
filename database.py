@@ -750,8 +750,6 @@ def get_related_products(product_id: int, limit: int = 4) -> List[ProductRespons
         p for p in products_db.values()
         if p.get("category_id") == product.category_id and p["id"] != product_id
     ]
-
-    related = related[:limit]
     return [ProductResponse(**p) for p in related]
 
 
@@ -763,6 +761,72 @@ def compare_products(product_ids: List[int]) -> List[ProductResponse]:
         if product:
             compared_products.append(product)
     return compared_products
+
+
+# ============ PROMOTIONS & FEATURES FUNCTIONS ============
+def get_promotions_and_features() -> PromotionsFeaturesResponse:
+    """Aktsiyalar va xususiyatlar ro'yxatini olish"""
+    from models import PromotionsFeaturesResponse, PromotionResponse, FeatureResponse
+    
+    promotions = [
+        {
+            "id": 1,
+            "title": "Aktsiyalar va sovg'alar",
+            "description": "Doimiy aktsiyalar, bonuslar va chegirmalar. Apple texnikasini eng qulay narxlarda sotib oling",
+            "icon": "gift",
+            "is_active": True
+        },
+        {
+            "id": 2,
+            "title": "Kechki chegirma",
+            "description": "Kech soat 18:00 dan 22:00 gacha barcha mahsulotlarga 15% chegirma",
+            "icon": "moon",
+            "is_active": True
+        },
+        {
+            "id": 3,
+            "title": "Bonus tizimi",
+            "description": "Har bir sotib olish uchun bonus to'plang va keyingi xarid uchun ishlating",
+            "icon": "star",
+            "is_active": True
+        }
+    ]
+    
+    features = [
+        {
+            "id": 1,
+            "title": "3 soatda yetkazish",
+            "description": "Tez va bepul yetkazish Moskvada. Buyurtma kuni 3 soatda yetkazamiz. Butun Rossiyada tez yetkazish yoki olib ketish mavjud",
+            "icon": "truck",
+            "is_active": True
+        },
+        {
+            "id": 2,
+            "title": "Qulay to'lov usullari",
+            "description": "Naqd yoki kartada qabul qilishda, saytda to'lov yoki kreditga olish",
+            "icon": "credit-card",
+            "is_active": True
+        },
+        {
+            "id": 3,
+            "title": "Kreditga sotib olish",
+            "description": "Mamlakatning 30 dan ortiq yetakchi banklaridan eng qulay kredit taklifini oling",
+            "icon": "bank",
+            "is_active": True
+        },
+        {
+            "id": 4,
+            "title": "Kafolat",
+            "description": "Saytimizda taqdim etilgan barcha mahsulotlar do'konimiz yoki Apple kompaniyasidan kafolatga ega",
+            "icon": "shield-check",
+            "is_active": True
+        }
+    ]
+    
+    return PromotionsFeaturesResponse(
+        promotions=[PromotionResponse(**p) for p in promotions],
+        features=[FeatureResponse(**f) for f in features]
+    )
 
 
 # ============ VIDEO FUNCTIONS ============
